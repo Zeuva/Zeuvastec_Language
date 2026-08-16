@@ -24,9 +24,6 @@
   <link rel="stylesheet" href="startup.css" />
 </head>
 <body>
-  <div id="startup-screen" role="status" aria-label="Carregando Zeuvastec Language">
-    <img src="startup-image.png" alt="" />
-  </div>
   <main class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="#home"><span class="brand-mark">Z</span><span>Zeuvastec<br><em>Language</em></span></a>
@@ -121,9 +118,9 @@
   <script src="pwa.js"></script>
   <script src="profile.js"></script>
   <script src="audio-unlock.js"></script>
+  <script src="sound-fix.js"></script>
   <script src="simulador-bank.js"></script>
   <!-- removido conflito -->
   <script src="exam.js"></script>
-  <script>window.addEventListener('load',function(){setTimeout(function(){document.getElementById('startup-screen').classList.add('startup-hidden');},900);});</script>
 </body>
 </html>

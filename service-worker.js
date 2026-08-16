@@ -1,9 +1,9 @@
-const CACHE_NAME = 'zeuvastec-language-v4';
+const CACHE_NAME = 'zeuvastec-language-v5';
 const APP_FILES = [
   './', './index.html', './style.css', './voice.css', './fix.css', './levels.css', './profile.css',
   './home-redesign.css', './flashcard-flip.css', './hero-illustration.css',
   './app.js', './interaction-fix.js', './guided-voice.js', './pwa.js', './profile.js', './audio-unlock.js',
-  './simulador-bank.js', './exam.js', './startup.css', './startup-image.png',
+  './simulador-bank.js', './exam.js', './audio-unlock.js', './sound-fix.js', './startup.css', './startup-image.png',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'
 ];
 self.addEventListener('install', (event) => {
