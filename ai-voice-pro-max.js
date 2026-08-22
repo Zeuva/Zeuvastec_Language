@@ -21,7 +21,7 @@
 
   const MOUTH_TIPS = {
     "th":"/θ/ e /ð/: Coloque a ponta da língua ENTRE os dentes. Sopro suave. Ex: think /θɪŋk/",
-    "r":"/r/: Não vibre como no português. Língua curvada, sem tocar o céu da boca. Ex: really /ˈrɪəli/",
+    "r":"/r/: Não vibre como no português. Língua curvada, sem tocar a parte superior da boca. Ex: really /ˈrɪəli/",
     "iː":"/iː/ longo: Sorria bem aberto, som longo. Ex: please /pliːz/ vs. this /ðɪs/",
     "æ":"/æ/: Boca bem aberta, como 'é' de 'café' mas mais aberto. Ex: cat /kæt/",
     "ʊ":"/ʊ/ curto: Lábios arredondados curto. Ex: good /ɡʊd/ vs food /fuːd/"

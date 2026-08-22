@@ -4,6 +4,7 @@
   const micBtn = document.getElementById('mic-button');
   
   function unlockAudio(){
+    if(typeof soundOn !== 'undefined' && !soundOn) return;
     if(!window.speechSynthesis) return;
     console.log('[AUDIO] Desbloqueando áudio');
     window.speechSynthesis.cancel();

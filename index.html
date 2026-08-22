@@ -22,18 +22,19 @@
   <link rel="stylesheet" href="flashcard-flip.css" />
   <link rel="stylesheet" href="hero-illustration.css" />
   <link rel="stylesheet" href="startup.css" />
+  <link rel="stylesheet" href="requested-fixes.css" />
 </head>
 <body>
   <main class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="#home"><span class="brand-mark">Z</span><span>Zeuvastec<br><em>Language</em></span></a>
       <nav aria-label="Navegação principal">
-        <button class="nav-item active" data-view="home"><span>⌂</span>Início</button>
-        <button class="nav-item" data-view="learn"><span>▣</span>Aprender</button>
-        <button class="nav-item" data-view="talk"><span>◉</span>Conversar</button>
-        <button class="nav-item" data-view="review"><span>↻</span>Revisar</button>
-        <button class="nav-item" data-view="exam"><span>📝</span>Simulados</button>
-      <button class="nav-item" data-view="progress"><span>◔</span>Meu progresso</button>
+        <button class="nav-item active" data-view="home"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/></svg></span>Início</button>
+        <button class="nav-item" data-view="learn"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Aprender</button>
+        <button class="nav-item" data-view="talk"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2"/></svg></span>Conversar</button>
+        <button class="nav-item" data-view="review"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 8a8 8 0 0 0-14.7-2L4 8"/><path d="M4 4v4h4"/><path d="M4 16a8 8 0 0 0 14.7 2l1.3-2"/><path d="M20 20v-4h-4"/></svg></span>Revisar</button>
+        <button class="nav-item" data-view="exam"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>Simulados</button>
+      <button class="nav-item" data-view="progress"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></span>Meu progresso</button>
       </nav>
       <div class="daily-card">
         <p>Meta diária</p>
@@ -97,7 +98,7 @@
 
     <section class="content hidden" id="progress-view">
       <header><div><p class="eyebrow">SEU PROGRESSO</p><h1>Você está evoluindo</h1><p class="subtitle">Cada prática conta.</p></div></header>
-      <div class="stats"><article><span>🔥</span><strong id="streak">3</strong><p>dias seguidos</p></article><article><span>✦</span><strong id="points">120</strong><p>pontos conquistados</p></article><article><span>◌</span><strong id="completed-count">0</strong><p>lições concluídas</p></article></div>
+      <div class="stats"><article><span>🔥</span><strong id="streak">0</strong><p>dias seguidos</p></article><article><span>✦</span><strong id="points">120</strong><p>pontos conquistados</p></article><article><span>◌</span><strong id="completed-count">0</strong><p>lições concluídas</p></article></div>
       <section class="progress-card"><h2>Atividade da semana</h2><div class="bars"><i style="height:35%"></i><i style="height:65%"></i><i style="height:45%"></i><i class="today" style="height:88%"></i><i style="height:20%"></i><i style="height:12%"></i><i style="height:8%"></i></div><div class="week"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div></section>
     </section>
 
@@ -122,5 +123,6 @@
   <script src="simulador-bank.js"></script>
   <!-- removido conflito -->
   <script src="exam.js"></script>
+  <script src="requested-fixes.js"></script>
 </body>
 </html>

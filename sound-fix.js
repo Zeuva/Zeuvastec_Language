@@ -16,6 +16,7 @@
 
   function say(text, lang) {
     if (!text) return;
+    if (typeof soundOn !== 'undefined' && !soundOn) return;
     unlock();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang || 'en-US';
