@@ -20,3 +20,25 @@ document.addEventListener('click', (event) => {
     window.speechSynthesis.speak(utterance);
   }
 });
+
+
+/* Áudio dos cards de vocabulário: usa delegação para funcionar
+   mesmo quando os cards são renderizados novamente dinamicamente. */
+document.addEventListener('click', (event) => {
+  const audioButton = event.target.closest && event.target.closest('.vocab-audio-btn');
+  if (!audioButton) return;
+  event.preventDefault();
+  event.stopPropagation();
+
+  const text = audioButton.dataset.voiceText
+    ? decodeURIComponent(audioButton.dataset.voiceText)
+    : '';
+  if (!text) return;
+
+  const lang = audioButton.dataset.voiceLang;
+  if (lang === 'pt' && typeof window.speakPortuguese === 'function') {
+    window.speakPortuguese(text);
+  } else if (lang === 'en' && typeof window.speakEnglish === 'function') {
+    window.speakEnglish(text);
+  }
+}, true);

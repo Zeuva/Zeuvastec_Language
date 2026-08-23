@@ -66,13 +66,9 @@
   window.updateZeuvastecStreak = updateStreak;
   updateStreak();
 
-  // Qualquer ação real de estudo/prática registra o dia.
-  document.addEventListener('click', function (event) {
-    const target = event.target.closest && event.target.closest(
-      '[data-lesson], #start-lesson, #next-card, #flip-card-btn, #mic-button, .mini-listen, [data-say], [data-say-en], [data-say-pt], #listen-word'
-    );
-    if (target) registerPracticeActivity();
-  }, true);
+  // A atividade só é registrada por conclusões de lição ou revisão de palavra,
+  // nunca por simplesmente abrir uma lição. Isso evita aumentar a sequência
+  // antes de o aluno realmente estudar.
 
   // O botão geral de som é tratado no app.js; os leitores de voz também
   // respeitam soundOn nos módulos de áudio.
