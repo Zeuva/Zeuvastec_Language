@@ -169,7 +169,7 @@ function updateProgressStats(){
   const p=document.getElementById('points'); if(p) p.textContent=String(points);
   const c=document.getElementById('completed-count'); if(c) c.textContent=String(completed.length);
 }
-function showView(v){ document.querySelectorAll('.content').forEach(x=>x.classList.add('hidden')); const el=document.getElementById(v+'-view'); if(el) el.classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v)); if(v==='progress') updateProgressStats(); if(v==='learn') renderLessons(); }
+function showView(v){ document.querySelectorAll('.content').forEach(x=>x.classList.add('hidden')); const el=document.getElementById(v+'-view'); if(el) el.classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v)); if(v==='progress') updateProgressStats(); if(v==='learn') renderLessons(); if(v!=='talk') window.dispatchEvent(new CustomEvent('maya-stop-conversa')); window.dispatchEvent(new CustomEvent('maya-view-changed',{detail:{view:v}})); }
 document.addEventListener('click',e=>{ const lesson=e.target.dataset.lesson; if(lesson) openLesson(+lesson); const view=e.target.closest('[data-view]')?.dataset.view; if(view) showView(view); const say=e.target.dataset.say; if(say) speakEnglish(say); });
 const startBtn=document.getElementById('start-lesson'); if(startBtn) startBtn.onclick=()=>{ const nxt=lessons.find(l=>!completed.includes(l.id))||lessons[0]; openLesson(nxt.id); };
 const closeBtn=document.getElementById('close-modal'); if(closeBtn) closeBtn.onclick=()=>{ const m=document.getElementById('lesson-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } };
@@ -234,6 +234,74 @@ function markWordKnown(){
 wireFlashcardShell();
 const dateEl=document.getElementById('date-now'); if(dateEl) dateEl.textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}).toUpperCase();
 const currentDateEl=document.getElementById('current-date'); if(currentDateEl){ const now=new Date(); currentDateEl.textContent=now.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase(); }
-const sKey='zeuvastec-student-name'; function applyName(v){ const name=(v||'amigo').trim()||'amigo'; const el1=document.getElementById('student-name'); const el2=document.getElementById('profile-name'); const el3=document.getElementById('profile-initials'); if(el1) el1.textContent=name; if(el2) el2.textContent=name; if(el3) el3.textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]).join('').toUpperCase(); } const saved=localStorage.getItem(sKey); if(saved) applyName(saved); const editBtn=document.getElementById('edit-profile'); if(editBtn) editBtn.addEventListener('click', (e)=>{ e.preventDefault(); const m=document.getElementById('name-modal'); if(m){ m.classList.remove('hidden'); m.style.display='grid'; const inp=document.getElementById('student-name-input'); if(inp){ inp.value=localStorage.getItem(sKey)||''; setTimeout(()=>inp.focus(),100); } } }); const nameForm=document.getElementById('name-form'); if(nameForm) nameForm.addEventListener('submit', (e)=>{ e.preventDefault(); const inp=document.getElementById('student-name-input'); const n=inp?inp.value.trim():''; if(!n) return; localStorage.setItem(sKey,n); applyName(n); const m=document.getElementById('name-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } });
+const sKey='zeuvastec-student-name'; function applyName(v){ const name=(v||'amigo').trim()||'amigo'; const el1=document.getElementById('student-name'); const el2=document.getElementById('profile-name'); const el3=document.getElementById('profile-initials'); if(el1) el1.textContent=name; if(el2) el2.textContent=name; if(el3) el3.textContent=name.split(/\s+/).slice(0,2).map(p=>p[0]).join('').toUpperCase(); } const saved=localStorage.getItem(sKey); if(saved) applyName(saved); const editBtn=document.getElementById('edit-profile'); if(editBtn) editBtn.addEventListener('click', (e)=>{ e.preventDefault(); const m=document.getElementById('name-modal'); if(m){ m.classList.remove('hidden'); m.style.display='grid'; const inp=document.getElementById('student-name-input'); if(inp){ inp.value=localStorage.getItem(sKey)||''; setTimeout(()=>inp.focus(),100); } } }); const nameForm=document.getElementById('name-form'); if(nameForm) nameForm.addEventListener('submit', (e)=>{ e.preventDefault(); const inp=document.getElementById('student-name-input'); const n=inp?inp.value.trim():''; if(!n) return; localStorage.setItem(sKey,n); applyName(n); const m=document.getElementById('name-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } darBoasVindas(n); });
+// Apresentação de boas-vindas da Maya 3D na tela de Início (pedido do
+// usuário, 2026-09-19; ampliada em 2026-09-20: Maya maior + introdução
+// completa falada). Só fala depois que o avatar 3D apareceu (ou depois de
+// um teto de espera, se ele falhar). Navegadores (principalmente no
+// iPhone) bloqueiam fala sem um toque do usuário antes — nesse caso o
+// texto da introdução já aparece no balão e a Maya fala no primeiro toque.
+let boasVindasFeita=false, introCancelada=false, introTexto=null, introJaFalou=false;
+function montarIntro(nome){
+  const n=(nome||'amigo').trim().split(/\s+/)[0];
+  return {
+    en:`Hello, ${n}! I'm Maya, your English tutor. Every day we will practice speaking, listening and new words together. Tap Talk whenever you want to start a conversation with me.`,
+    pt:`Olá, ${n}! Eu sou a Maya, sua tutora de inglês. Todos os dias vamos praticar fala, escuta e palavras novas juntas. Toque em Conversar quando quiser começar uma conversa comigo.`
+  };
+}
+function homeVisivel(){ const h=document.getElementById('home-view'); return !!h && !h.classList.contains('hidden'); }
+function falarIntro(){
+  if(!introTexto || !homeVisivel()) return;
+  introCancelada=false; introJaFalou=true;
+  const dica=document.getElementById('maya-intro-hint'); if(dica) dica.hidden=true;
+  const {en,pt}=introTexto;
+  window.speakEnglish(en,0.9,()=>{ if(!introCancelada) setTimeout(()=>{ if(!introCancelada && homeVisivel()) window.speakPortuguese(pt,1.0); },500); });
+}
+function cancelarIntro(){ introCancelada=true; }
+window.addEventListener('maya-view-changed',(ev)=>{ if(ev.detail&&ev.detail.view!=='home'){ cancelarIntro(); } });
+async function darBoasVindas(nome){
+  if(boasVindasFeita) return;
+  boasVindasFeita=true;
+  introTexto=montarIntro(nome);
+  const box=document.getElementById('maya-intro');
+  if(box){
+    document.getElementById('maya-intro-en').textContent=introTexto.en;
+    document.getElementById('maya-intro-pt').textContent=introTexto.pt;
+    box.hidden=false;
+    const btn=document.getElementById('maya-intro-replay');
+    if(btn) btn.onclick=()=>{ try{ speechSynthesis.cancel(); }catch(e){} setTimeout(falarIntro,700); };
+  }
+  // 1) a Maya aparece primeiro (espera o avatar 3D terminar de carregar — no
+  // celular o GLB demora; se ele falhar, a promessa resolve e vale a foto);
+  // 2) 2 segundos depois a apresentação começa SOZINHA, sem apertar nada.
+  if(window.__mayaAguardarPronta){ await Promise.race([window.__mayaAguardarPronta(), new Promise(r=>setTimeout(r,30000))]); }
+  await new Promise(r=>setTimeout(r,2000));
+  if(!homeVisivel()||introCancelada) return;
+  let comecou=false; const aoComecar=()=>{ comecou=true; };
+  window.addEventListener('maya-speech-started',aoComecar);
+  falarIntro();
+  await new Promise(r=>setTimeout(r,3500));
+  window.removeEventListener('maya-speech-started',aoComecar);
+  if(comecou||!homeVisivel()||introCancelada) return;
+  // O navegador bloqueou a fala automática (regra do iPhone/Safari e do
+  // Chrome: som só depois de um toque do usuário). Então o PRIMEIRO toque em
+  // qualquer lugar da tela já dispara a apresentação; o botão é só um aviso.
+  introJaFalou=false;
+  const hint=document.getElementById('maya-intro-hint');
+  const parar=()=>{ document.removeEventListener('pointerdown',esperar,true); document.removeEventListener('keydown',esperar,true); window.removeEventListener('maya-speech-started',parar); if(hint) hint.hidden=true; };
+  function esperar(e){
+    const alvo=e.target&&e.target.closest?e.target:null;
+    // toque no próprio botão de ouvir: deixa o clique dele cuidar disso
+    if(alvo&&(alvo.closest('#maya-intro-hint')||alvo.closest('#maya-intro-replay'))) return;
+    parar();
+    // primeiro toque foi pra outra tela: sem introdução
+    if(introJaFalou||(alvo&&alvo.closest('[data-view]'))) return;
+    setTimeout(falarIntro,700);
+  }
+  if(hint){ hint.hidden=false; hint.onclick=()=>{ parar(); setTimeout(falarIntro,700); }; }
+  window.addEventListener('maya-speech-started',parar);
+  document.addEventListener('pointerdown',esperar,true); document.addEventListener('keydown',esperar,true);
+}
+if(saved) darBoasVindas(saved);
 const soundToggle=document.getElementById('sound-toggle'); if(soundToggle) soundToggle.onclick=()=>{ soundOn=!soundOn; soundToggle.style.opacity=soundOn?'1':'.45'; soundToggle.setAttribute('aria-pressed',soundOn?'true':'false'); soundToggle.setAttribute('aria-label',soundOn?'Desativar sons':'Ativar sons'); if(!soundOn){ try{ speechSynthesis.cancel(); }catch(e){} } };
 renderLessons(); renderCard(); updateDailyRing(); updateProgressStats(); updateDailyRing();

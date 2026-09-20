@@ -1,13 +1,96 @@
 
 // VOICE FIX - EN vs PT separado, mantendo microfone funcionando
+// A Maya é a única personagem do app — a voz precisa ser sempre feminina.
+// A Web Speech API não expõe o gênero da voz diretamente, então usamos o
+// nome da voz (nomes conhecidos de vozes masculinas comuns em Windows,
+// Chrome, macOS/iOS) para NUNCA escolher uma delas quando existir alguma
+// alternativa feminina disponível no navegador (2026-09-17).
+const NOMES_VOZ_MASCULINA=['david','guy','daniel','alex','mark','george','ryan','fred','tom','oliver','arthur','eric','thiago','antonio','felipe','ricardo','daniel'];
+// Vozes "online" (Google, Microsoft Online/Natural do Edge) IGNORAM o volume
+// da fala no Chrome/Edge — o som saía sempre no volume máximo mesmo com o
+// controle da Maya abaixado (2026-09-19). Vozes locais do sistema obedecem,
+// então elas passam na frente; Google deixa de ganhar bônus.
+function ehVozOnline(v){ return v.localService===false || (v.localService===undefined && /online|google/i.test(v.name||'')); }
+function pontosVozLocal(v){ return ehVozOnline(v) ? -30 : 20; }
+function pareceVozMasculina(v){ const n=(v.name||'').toLowerCase(); return NOMES_VOZ_MASCULINA.some(m=>n.includes(m)); }
 let voiceCacheFix={en:[],pt:[]}; let vReady=false;
-function refreshVFix(){ try{ const all=speechSynthesis.getVoices(); if(!all.length) return; vReady=true; voiceCacheFix.en=all.filter(v=>v.lang.toLowerCase().startsWith('en')); voiceCacheFix.pt=all.filter(v=>v.lang.toLowerCase().startsWith('pt')); voiceCacheFix.en.sort((a,b)=>{ const aS=(a.lang==='en-US'?10:0)+(a.name.includes('Google')?5:0); const bS=(b.lang==='en-US'?10:0)+(b.name.includes('Google')?5:0); return bS-aS; }); voiceCacheFix.pt.sort((a,b)=>{ const aS=(a.lang==='pt-BR'?10:0)+(a.name.includes('Google')?5:0); const bS=(b.lang==='pt-BR'?10:0)+(b.name.includes('Google')?5:0); return bS-aS; }); }catch(e){} }
+function refreshVFix(){ try{ const all=speechSynthesis.getVoices(); if(!all.length) return; vReady=true; voiceCacheFix.en=all.filter(v=>v.lang.toLowerCase().startsWith('en')); voiceCacheFix.pt=all.filter(v=>v.lang.toLowerCase().startsWith('pt')); voiceCacheFix.en.sort((a,b)=>{ const aS=(a.lang==='en-US'?10:0)+pontosVozLocal(a)+(pareceVozMasculina(a)?-100:0); const bS=(b.lang==='en-US'?10:0)+pontosVozLocal(b)+(pareceVozMasculina(b)?-100:0); return bS-aS; }); voiceCacheFix.pt.sort((a,b)=>{ const aS=(a.lang==='pt-BR'?10:0)+pontosVozLocal(a)+(pareceVozMasculina(a)?-100:0); const bS=(b.lang==='pt-BR'?10:0)+pontosVozLocal(b)+(pareceVozMasculina(b)?-100:0); return bS-aS; }); }catch(e){} }
 refreshVFix(); if(speechSynthesis.onvoiceschanged!==undefined){ speechSynthesis.onvoiceschanged=refreshVFix; setTimeout(refreshVFix,500); setTimeout(refreshVFix,1500); }
 function getENFix(){ if(!vReady) refreshVFix(); return voiceCacheFix.en.find(v=>v.lang==='en-US')||voiceCacheFix.en[0]||null; }
 function getPTFix(){ if(!vReady) refreshVFix(); return voiceCacheFix.pt.find(v=>v.lang==='pt-BR')||voiceCacheFix.pt[0]||null; }
-function speakENFix(t,r=0.9,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=r; const v=getENFix(); if(v) u.voice=v; if(o) u.onend=o; speechSynthesis.speak(u); },80); }
-function speakPTFix(t,r=1,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; const isPureEN=/^[A-Za-z0-9 .,!?'"-]+$/.test(t) && !/[áàâãéêíóôõúç]/.test(t) && /\b(hello|my name|I am|would like|coffee|please|thank you|good morning|how are you|welcome to the café|what would you like)\b/i.test(t); if(isPureEN){ speakENFix(t,r,o); return; } speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(t); u.lang='pt-BR'; u.rate=r; const v=getPTFix(); if(v) u.voice=v; if(o) u.onend=o; speechSynthesis.speak(u); },80); }
+// A Maya deve mexer a boca enquanto fala, igual no Zeuvastec Assistente de
+// IA (2026-09-17). O navegador não dá os fonemas exatos do áudio, mas o
+// evento "boundary" da própria fala marca cada palavra em tempo real —
+// usamos isso para alternar formatos de boca (visemas) no avatar 3D via
+// eventos globais, que o maya-3d.js escuta (sem acoplar os dois arquivos).
+function avisarVozOnline(v){ const n=document.getElementById('maya-volume-nota'); if(n) n.hidden=!(v && ehVozOnline(v)); }
+let contadorFalas=0;
+function anexarEventosDeFala(u){
+  // Cada fala tem um id: o fim de uma fala antiga (cancelada) não pode
+  // fechar a boca de uma fala nova (ver maya-3d.js). O início leva o texto,
+  // o idioma e a velocidade pra o avatar montar a linha do tempo labial.
+  const id=++contadorFalas;
+  // O "start" (que liga a boca) só dispara quando a fala DE FATO começa
+  // (onstart). Antes disparava ao criar a fala: quando o navegador bloqueava
+  // o som (sem toque prévio do aluno, comum no iPhone), a Maya mexia a boca
+  // sem sair som. Alguns navegadores não mandam onstart; nesse caso, se
+  // depois de 1,2s o sintetizador está falando, iniciamos mesmo assim.
+  let jaIniciou=false;
+  function iniciar(){
+    if(jaIniciou) return;
+    jaIniciou=true;
+    window.dispatchEvent(new CustomEvent('maya-speaking-start',{detail:{id, text:u.text||'', lang:u.lang||'', rate:u.rate||1}}));
+    window.dispatchEvent(new CustomEvent('maya-speech-started'));
+  }
+  u.onstart=iniciar;
+  setTimeout(()=>{ if(!jaIniciou && speechSynthesis.speaking) iniciar(); },1200);
+  u.onboundary=(ev)=>{
+    iniciar();
+    // charIndex = onde a palavra começa no texto; o avatar ressincroniza a
+    // boca nessa palavra e aprende o ritmo real da voz.
+    window.dispatchEvent(new CustomEvent('maya-speaking-boundary',{detail:{charIndex: typeof ev?.charIndex==='number' ? ev.charIndex : null}}));
+  };
+  let jaTerminou=false;
+  function terminar(){
+    if (jaTerminou) return;
+    jaTerminou=true;
+    if (seguranca) clearTimeout(seguranca);
+    window.dispatchEvent(new CustomEvent('maya-speaking-end',{detail:{id}}));
+  }
+  // Rede de segurança (2026-09-18): em alguns navegadores/celulares (relatado
+  // no iPhone) o "onend" da fala às vezes nunca dispara — a Maya nem chega a
+  // falar de verdade (sem áudio), mas a boca fica se mexendo pra sempre
+  // porque o evento de "parou de falar" nunca chega. Um tempo máximo,
+  // calculado pelo tamanho do texto (bem folgado), garante que a boca sempre
+  // feche, mesmo se o navegador nunca avisar que a fala terminou.
+  const tempoMaximoMs=Math.min(20000, Math.max(4000, (u.text||'').length*150));
+  const seguranca=setTimeout(terminar, tempoMaximoMs);
+  const onendOriginal=u.onend;
+  u.onend=(...args)=>{ terminar(); if(onendOriginal) onendOriginal(...args); };
+  const onerrorOriginal=u.onerror;
+  u.onerror=(...args)=>{ terminar(); if(onerrorOriginal) onerrorOriginal(...args); };
+}
+function speakENFix(t,r=0.9,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=r; u.volume=window.mayaVolume; const v=getENFix(); if(v) u.voice=v; avisarVozOnline(v); if(o) u.onend=o; anexarEventosDeFala(u); speechSynthesis.speak(u); },80); }
+function speakPTFix(t,r=1,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; const isPureEN=/^[A-Za-z0-9 .,!?'"-]+$/.test(t) && !/[áàâãéêíóôõúç]/.test(t) && /\b(hello|my name|I am|would like|coffee|please|thank you|good morning|how are you|welcome to the café|what would you like)\b/i.test(t); if(isPureEN){ speakENFix(t,r,o); return; } speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(t); u.lang='pt-BR'; u.rate=r; u.volume=window.mayaVolume; const v=getPTFix(); if(v) u.voice=v; avisarVozOnline(v); if(o) u.onend=o; anexarEventosDeFala(u); speechSynthesis.speak(u); },80); }
 window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakBilingual=(en,pt)=>{ speakENFix(en,0.9,()=>{ setTimeout(()=> speakPTFix(pt,1.0),600); }); }; function speakSlowFix(t){ speakENFix(t,0.55); } window.speakSlow=speakSlowFix;
+
+// Volume da Maya (2026-09-19: "não dá pra controlar o volume, fala na altura
+// máxima"). A Web Speech API aceita volume 0..1 por fala; guardamos a escolha
+// do aluno no aparelho e usamos em toda fala (padrão 60%, não 100%).
+const CHAVE_VOLUME='zeuvastec-volume';
+window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOLUME)); return isFinite(v)?Math.min(1,Math.max(0,v)):0.6; })();
+(function(){
+  const slider=document.getElementById('maya-volume'), icone=document.getElementById('maya-volume-icon');
+  if(!slider) return;
+  let volumeAntesDeMudo=window.mayaVolume||0.6;
+  function atualizarIcone(){ if(icone) icone.textContent=window.mayaVolume===0?'🔇':(window.mayaVolume<0.5?'🔉':'🔊'); }
+  function aplicar(v,salvar){ window.mayaVolume=Math.min(1,Math.max(0,v)); slider.value=String(Math.round(window.mayaVolume*100)); if(salvar){ try{ localStorage.setItem(CHAVE_VOLUME,String(window.mayaVolume)); }catch(e){} } atualizarIcone(); }
+  aplicar(window.mayaVolume,false);
+  slider.addEventListener('input',()=>{ aplicar(slider.value/100,true); if(window.mayaVolume>0) volumeAntesDeMudo=window.mayaVolume; });
+  // ao soltar o controle, a Maya diz uma palavrinha no volume novo pra o aluno ouvir o nível
+  slider.addEventListener('change',()=>{ if(window.mayaVolume>0 && typeof window.speakEnglish==='function') window.speakEnglish('Hello!',1); });
+  if(icone) icone.addEventListener('click',()=>{ if(window.mayaVolume>0){ volumeAntesDeMudo=window.mayaVolume; aplicar(0,true); try{ speechSynthesis.cancel(); }catch(e){} } else { aplicar(volumeAntesDeMudo||0.6,true); } });
+})();
 
 /* Guided speaking exercise: several conversation scenarios per level, checks a spoken answer, corrects it, and moves ahead. */
 (function () {
@@ -258,6 +341,11 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
   let sessionStats = { firstTryCorrect: 0, reviewPhrases: [] };
   let aiChatActive = false;
   let aiHistory = [];
+  // Controla se a conversa deve continuar falando/ouvindo. Vira false ao sair
+  // da tela "Conversar" (pedido do usuário: a Maya não pode continuar
+  // falando sozinha depois que o aluno já foi pra outra tela) e volta a true
+  // só quando o aluno entra em "Conversar" de novo.
+  let conversaAtiva = true;
 
   // --- Integração opcional com IA (backend próprio) ---
   // Por segurança, a chave de API nunca pode ficar no código do app (client-side).
@@ -379,17 +467,51 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
     });
   }
 
-  function say(text, afterSpeaking) { speakENFix(text, 0.9, afterSpeaking); }
+  // A Maya precisa parecer que está realmente falando, não uma foto parada:
+  // um aro pulsa ao redor do avatar grande enquanto o áudio toca.
+  const mayaAvatarBig = document.getElementById('maya-avatar-big');
+  function setMayaSpeaking(falando) {
+    if (mayaAvatarBig) mayaAvatarBig.classList.toggle('speaking', !!falando);
+  }
+  function say(text, afterSpeaking) {
+    if (!conversaAtiva) return;
+    setMayaSpeaking(true);
+    speakENFix(text, 0.9, () => { setMayaSpeaking(false); if (afterSpeaking && conversaAtiva) afterSpeaking(); });
+  }
+
+  // Mostra a frase que a Maya está dizendo, bem grande, logo abaixo do
+  // avatar — em inglês e português juntos, como pedido pelo usuário.
+  const mayaSpeechEn = document.getElementById('maya-speech-en');
+  const mayaSpeechPt = document.getElementById('maya-speech-pt');
+  function mostrarFraseDaMaya(textoIngles, textoPortugues) {
+    if (mayaSpeechEn) mayaSpeechEn.textContent = textoIngles || '';
+    if (mayaSpeechPt) mayaSpeechPt.textContent = textoPortugues || '';
+  }
 
   function message(text, who) {
     const item = document.createElement('article');
     item.className = `message ${who}`;
-    const name = who === 'tutor' ? 'TUTOR' : 'VOCÊ';
-    const badge = who === 'tutor' ? 'Z' : 'EU';
+    const name = who === 'tutor' ? 'MAYA' : 'VOCÊ';
+    const badge = who === 'tutor' ? '<img src="maya.png" alt="Maya">' : 'EU';
     item.innerHTML = `<span class="speaker">${badge}</span><div><small>${name}</small><p></p></div>`;
     item.querySelector('p').textContent = text;
     dialogue.appendChild(item);
     dialogue.scrollTop = dialogue.scrollHeight;
+    if (who === 'tutor') {
+      // Só mostramos tradução quando ela vem junto com a frase no formato
+      // "frase em inglês — tradução" (ver runAcquirePhase), que é a única
+      // forma garantida de a tradução ser exatamente da frase certa. Tentar
+      // adivinhar a tradução pelo passo atual do cenário se mostrou
+      // arriscado (os arrays de perguntas e traduções nem sempre alinham
+      // pelo mesmo índice) — melhor mostrar só o inglês do que uma
+      // tradução errada para quem está aprendendo.
+      const partes = text.split(' — ');
+      if (partes.length === 2) {
+        mostrarFraseDaMaya(partes[0], partes[1]);
+      } else {
+        mostrarFraseDaMaya(text, '');
+      }
+    }
   }
 
   function askNext() {
@@ -482,6 +604,13 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
   }
 
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // O botão do microfone é escondido no computador (a escuta liga sozinha),
+  // mas no iPhone/iPad o Safari só deixa o reconhecimento de voz começar
+  // com um TOQUE do aluno — com o botão escondido a Maya falava e nunca
+  // ouvia (2026-09-19). Nesses aparelhos, e em navegadores sem
+  // reconhecimento de voz, o botão fica sempre visível.
+  const aparelhoApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!Recognition || aparelhoApple) mic.classList.remove('hidden');
   if (!Recognition) {
     mic.onclick = () => {
       if (aiChatActive) {
@@ -530,6 +659,8 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
   guidedRecognition.onerror = (event) => {
     isListening = false;
     mic.classList.remove('listening');
+    mic.classList.remove('hidden'); // deixa o aluno tocar pra tentar de novo
+    mic.classList.add('pulse');
     status.textContent = 'Não consegui ouvir';
     if (isIOS) {
       help.textContent = `O reconhecimento de voz do iPhone/iPad é instável (erro: ${event.error || 'desconhecido'}). Verifique Ajustes > Safari > Microfone, ou toque no microfone para tentar de novo.`;
@@ -544,7 +675,8 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
     // alguns segundos em silêncio. Nesse caso, não desligamos o microfone
     // visualmente: reiniciamos a escuta automaticamente e mantemos o botão
     // vermelho até que exista uma resposta ou ocorra um erro real.
-    const canKeepListening = !recognitionGotResult
+    const canKeepListening = conversaAtiva
+      && !recognitionGotResult
       && !aiChatActive
       && currentStep < steps.length
       && !isIOS
@@ -576,20 +708,19 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
     // o reconhecimento. O primeiro toque arma a sessão; depois disso,
     // cada nova pergunta tenta iniciar o microfone automaticamente.
     if (isIOS) {
-      if (!autoListenArmed) {
-        mic.classList.add('pulse');
-        help.textContent = 'Toque no microfone uma vez para ativar a conversa automática.';
-        return;
-      }
-      mic.classList.remove('pulse');
-      window.setTimeout(startListening, delay);
+      // Sempre mostra o microfone pulsando: se o Safari não deixar iniciar
+      // sozinho, o aluno já sabe que é a vez dele e toca.
+      mic.classList.remove('hidden');
+      mic.classList.add('pulse');
+      help.textContent = 'Sua vez! Toque no microfone 🎤 e responda em inglês.';
+      if (autoListenArmed) window.setTimeout(startListening, delay);
       return;
     }
     if (microphoneStream) window.setTimeout(startListening, delay);
   }
 
   async function startListening() {
-    if ((currentStep >= steps.length && !aiChatActive) || isListening) return;
+    if (!conversaAtiva || (currentStep >= steps.length && !aiChatActive) || isListening) return;
     mic.classList.remove('pulse');
     if (!isIOS && !microphonePermissionChecked && navigator.mediaDevices?.getUserMedia) {
       microphonePermissionChecked = true;
@@ -617,4 +748,72 @@ window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakB
   mic.onclick = () => {
     startListening();
   };
+
+  // Pede a permissão do microfone cedo (usando o clique em "Conversar" como
+  // o gesto do usuário que o navegador exige), mas SEM começar a ouvir de
+  // verdade ainda — só guarda a permissão pra quando a Maya realmente
+  // precisar dela, depois de falar (ver iniciarConversaAoEntrar).
+  async function primeMicPermission() {
+    if (isIOS || microphonePermissionChecked || !navigator.mediaDevices?.getUserMedia) return;
+    microphonePermissionChecked = true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      microphoneStream = { authorized: true };
+    } catch (error) {
+      microphonePermissionChecked = false;
+    }
+  }
+
+  // A ordem certa da conversa é: a Maya fala a pergunta primeiro, o aluno
+  // responde depois — nunca o contrário (pedido do usuário, 2026-09-18: "a
+  // Maya inicia calada, só depois que o aluno responde é que ela continua
+  // falando"). Por isso, ao entrar em "Conversar", em vez de já ligar o
+  // microfone, pedimos pra Maya falar a pergunta atual — é o próprio
+  // askNext() que liga o microfone (maybeAutoListen) só depois que ela
+  // termina de falar.
+  async function iniciarConversaAoEntrar() {
+    primeMicPermission();
+    // A Maya 3D precisa estar visível ANTES de falar a primeira frase
+    // (pedido do usuário, 2026-09-19) — espera ela terminar de carregar,
+    // com um teto de 6s pra não deixar o aluno esperando calado demais se
+    // o avatar 3D falhar (nesse caso a foto de fallback já aparece).
+    if (window.__mayaAguardarPronta) {
+      await Promise.race([window.__mayaAguardarPronta(), new Promise((r) => setTimeout(r, 6000))]);
+    }
+    if (!conversaAtiva) return; // o aluno pode ter saído enquanto esperava
+    if (!aiChatActive && currentStep < steps.length) {
+      askNext();
+    }
+  }
+
+  // Encerra a conversa de verdade quando o aluno sai da tela "Conversar"
+  // (pedido do usuário, 2026-09-18: a Maya continuava falando/ouvindo depois
+  // de já ter voltado pro Início). Cancela a fala em andamento, para o
+  // reconhecimento de voz e impede que qualquer callback pendente (próxima
+  // pergunta, próxima frase da fase ADQUIRIR, resposta da IA) reative a fala
+  // ou o microfone sozinha enquanto o aluno estiver em outra tela.
+  function pararConversa() {
+    conversaAtiva = false;
+    try { speechSynthesis.cancel(); } catch (e) {}
+    setMayaSpeaking(false);
+    window.dispatchEvent(new CustomEvent('maya-speaking-end'));
+    if (recognitionRestartTimer) { clearTimeout(recognitionRestartTimer); recognitionRestartTimer = null; }
+    try { guidedRecognition.abort(); } catch (e) {}
+    isListening = false;
+    mic.classList.remove('listening');
+    mic.classList.remove('pulse');
+  }
+  window.addEventListener('maya-stop-conversa', pararConversa);
+
+  // O botão de microfone foi escondido da interface (pedido do usuário) —
+  // a escuta liga sozinha assim que a pessoa entra na aba "Conversar",
+  // usando o próprio clique no menu como o "gesto do usuário" que o
+  // navegador exige para autorizar o microfone da primeira vez.
+  document.querySelectorAll('[data-view="talk"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      conversaAtiva = true;
+      window.setTimeout(iniciarConversaAoEntrar, 300);
+    });
+  });
 }());
