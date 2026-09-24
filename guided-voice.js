@@ -102,33 +102,45 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
 
   const levelNames = { basic: 'Básico', intermediate: 'Intermediário', advanced: 'Avançado' };
   const scenarioNames = {
-    basic: { cafe: 'Café', apresentacoes: 'Apresentações', rotina: 'Rotina diária' },
-    intermediate: { fimDeSemana: 'Fim de semana', trabalho: 'Trabalho', viagens: 'Viagens' },
+    basic: { palavras: 'Palavras simples', apresentacoes: 'Apresentações', cafe: 'Café' },
+    intermediate: { rotina: 'Rotina diária', fimDeSemana: 'Fim de semana', trabalho: 'Trabalho', viagens: 'Viagens' },
     advanced: { sociedade: 'Sociedade', lideranca: 'Liderança', tecnologia: 'Tecnologia' }
   };
 
   const courses = {
     basic: {
-      cafe: [
-        { question: 'Hi! Welcome to the café. What would you like to drink?', example: 'I would like a coffee, please.', check: (t) => /\b(coffee|tea|water|juice|soda)\b/.test(t) },
-        { question: 'Would you like something to eat too?', example: 'Yes, I would like a sandwich.', check: (t) => /\b(yes|no|sandwich|cake|cookie|toast)\b/.test(t) },
-        { question: 'For here or to go?', example: 'For here, please.', check: (t) => /\b(for here|to go|here|go)\b/.test(t) },
-        { question: 'That will be five dollars. How would you like to pay?', example: 'I will pay with card.', check: (t) => /\b(card|cash|pay)\b/.test(t) },
-        { question: 'Here you go! Enjoy your coffee.', example: 'Thank you very much!', check: (t) => /\b(thank you|thanks)\b/.test(t) },
-        { question: 'Would you like a receipt?', example: 'No, that is fine, thank you.', check: (t) => /\b(yes|no|receipt|fine)\b/.test(t) },
-        { question: 'Do you need anything else?', example: 'No, that is all for now.', check: (t) => /\b(yes|no|that is all|else|nothing)\b/.test(t) },
-        { question: 'Have a great day! Come back soon.', example: 'I will, thank you! Goodbye.', check: (t) => /\b(thank you|goodbye|bye|will)\b/.test(t) }
+      palavras: [
+        { question: 'Say: Hello!', example: 'Hello!', check: (t) => /\b(hello|hi|hey)\b/.test(t) },
+        { question: 'Say: Thank you.', example: 'Thank you.', check: (t) => /\b(thank you|thanks|thank)\b/.test(t) },
+        { question: 'Say: Yes.', example: 'Yes.', check: (t) => /\b(yes|yeah)\b/.test(t) },
+        { question: 'Say: No.', example: 'No.', check: (t) => /\b(no|know)\b/.test(t) },
+        { question: 'Say: Please.', example: 'Please.', check: (t) => /\b(please|pleas)\b/.test(t) },
+        { question: 'Say: Water.', example: 'Water.', check: (t) => /\b(water)\b/.test(t) },
+        { question: 'Say: Good morning.', example: 'Good morning.', check: (t) => /\b(good morning|morning)\b/.test(t) },
+        { question: 'Say: Goodbye!', example: 'Goodbye!', check: (t) => /\b(goodbye|good bye|bye)\b/.test(t) }
       ],
       apresentacoes: [
-        { question: 'Hello! What is your name?', example: 'My name is Elise.', check: (t) => /\b(my name is|i am|i'm)\b/.test(t) },
-        { question: 'Nice to meet you! Where are you from?', example: 'I am from Brazil.', check: (t) => /\b(i am from|i'm from|from)\b/.test(t) },
-        { question: 'How old are you?', example: 'I am twenty years old.', check: (t) => /\b(i am|i'm)\b.*\b(years old|year old)\b/.test(t) },
-        { question: 'What do you do? Do you work or study?', example: 'I work as a teacher.', check: (t) => /\b(i work|i study|teacher|student)\b/.test(t) },
-        { question: 'It was great talking to you! Can you say goodbye?', example: 'Goodbye! See you soon.', check: (t) => /\b(goodbye|bye|see you)\b/.test(t) },
-        { question: 'Do you have any brothers or sisters?', example: 'Yes, I have one sister.', check: (t) => /\b(yes|no|brother|sister)\b/.test(t) },
-        { question: 'What do you like to do in your free time?', example: 'I like to read books.', check: (t) => /\b(i like|i enjoy|free time)\b/.test(t) },
-        { question: 'It was a pleasure talking with you today!', example: 'The pleasure was mine!', check: (t) => /\b(pleasure|thank you|nice)\b/.test(t) }
+        { question: 'Hello! What is your name?', example: 'My name is Ana.', check: (t) => /\b(my name|i am|i'm|name)\b/.test(t) },
+        { question: 'Nice to meet you! Where are you from?', example: 'I am from Brazil.', check: (t) => /\b(i am from|i'm from|from|brazil)\b/.test(t) },
+        { question: 'How are you?', example: 'I am fine, thank you.', check: (t) => /\b(fine|good|great|ok|okay|well|thank)\b/.test(t) },
+        { question: 'Do you like coffee?', example: 'Yes, I like coffee.', check: (t) => /\b(yes|no|like|coffee)\b/.test(t) },
+        { question: 'What is your favorite color?', example: 'My favorite color is blue.', check: (t) => /\b(color|blue|red|green|yellow|black|white|pink|purple|orange)\b/.test(t) },
+        { question: 'Do you have a brother or a sister?', example: 'Yes, I have a sister.', check: (t) => /\b(yes|no|brother|sister)\b/.test(t) },
+        { question: 'Can you count? Say: one, two, three.', example: 'One, two, three.', check: (t) => /\b(one|two|three|1|2|3)\b/.test(t) },
+        { question: 'Nice talking to you! Goodbye!', example: 'Goodbye! See you.', check: (t) => /\b(goodbye|bye|see you)\b/.test(t) }
       ],
+      cafe: [
+        { question: 'Hi! Coffee or tea?', example: 'Coffee, please.', check: (t) => /\b(coffee|tea|water|juice)\b/.test(t) },
+        { question: 'Do you want sugar?', example: 'Yes, please.', check: (t) => /\b(yes|no|please|sugar)\b/.test(t) },
+        { question: 'Do you want bread?', example: 'Yes, bread, please.', check: (t) => /\b(yes|no|bread|please)\b/.test(t) },
+        { question: 'For here or to go?', example: 'For here, please.', check: (t) => /\b(for here|to go|here|go)\b/.test(t) },
+        { question: 'It is five dollars.', example: 'Here you go.', check: (t) => /\b(here|thank|card|cash|pay)\b/.test(t) },
+        { question: 'Thank you! Enjoy your coffee.', example: 'Thank you!', check: (t) => /\b(thank you|thanks|thank)\b/.test(t) },
+        { question: 'Do you need anything else?', example: 'No, thank you.', check: (t) => /\b(no|yes|thank|thanks)\b/.test(t) },
+        { question: 'Have a nice day! Goodbye.', example: 'Goodbye!', check: (t) => /\b(goodbye|bye|thank|you too)\b/.test(t) }
+      ]
+    },
+    intermediate: {
       rotina: [
         { question: 'What time do you wake up every day?', example: 'I wake up at seven o\'clock.', check: (t) => /\b(i wake up|wake up|o'clock|seven|eight)\b/.test(t) },
         { question: 'What do you do every morning?', example: 'I have breakfast and go to work.', check: (t) => /\b(i |i'm).*(breakfast|work|school|study|wake up)\b/.test(t) },
@@ -138,9 +150,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
         { question: 'What do you usually have for lunch?', example: 'I usually have rice and chicken.', check: (t) => /\b(i usually|lunch|rice|chicken|food)\b/.test(t) },
         { question: 'What time do you go to bed?', example: 'I go to bed at ten o\'clock.', check: (t) => /\b(i go to bed|bed|o'clock|ten|eleven)\b/.test(t) },
         { question: 'Thanks for sharing your routine with me!', example: 'You are welcome, it was fun!', check: (t) => /\b(you are welcome|welcome|fun|thank)\b/.test(t) }
-      ]
-    },
-    intermediate: {
+      ],
       fimDeSemana: [
         { question: 'What did you do last weekend?', example: 'I went to the beach with my friends.', check: (t) => /\b(i went|i visited|i watched|i stayed|i had)\b/.test(t) },
         { question: 'Why did you enjoy it?', example: 'Because the weather was beautiful.', check: (t) => /\b(because|it was|i really)\b/.test(t) },
@@ -208,26 +218,38 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
 
   const translations = {
     basic: {
-      cafe: [
-        ['Oi! Bem-vindo(a) ao café. O que você gostaria de beber?', 'Eu gostaria de um café, por favor.'],
-        ['Você gostaria de comer algo também?', 'Sim, eu gostaria de um sanduíche.'],
-        ['Para consumir aqui ou para levar?', 'Para consumir aqui, por favor.'],
-        ['Serão cinco dólares. Como você gostaria de pagar?', 'Eu vou pagar com cartão.'],
-        ['Aqui está! Aproveite o seu café.', 'Muito obrigado(a)!'],
-        ['Você gostaria do recibo?', 'Não, tudo bem, obrigado(a).'],
-        ['Precisa de mais alguma coisa?', 'Não, é só isso por agora.'],
-        ['Tenha um ótimo dia! Volte logo.', 'Vou sim, obrigado(a)! Tchau.']
+      palavras: [
+        ['Diga: Olá!', 'Olá!'],
+        ['Diga: Obrigado(a).', 'Obrigado(a).'],
+        ['Diga: Sim.', 'Sim.'],
+        ['Diga: Não.', 'Não.'],
+        ['Diga: Por favor.', 'Por favor.'],
+        ['Diga: Água.', 'Água.'],
+        ['Diga: Bom dia.', 'Bom dia.'],
+        ['Diga: Tchau!', 'Tchau!']
       ],
       apresentacoes: [
-        ['Olá! Qual é o seu nome?', 'Meu nome é Elise.'],
+        ['Olá! Qual é o seu nome?', 'Meu nome é Ana.'],
         ['Prazer em conhecer você! De onde você é?', 'Eu sou do Brasil.'],
-        ['Quantos anos você tem?', 'Eu tenho vinte anos.'],
-        ['O que você faz? Você trabalha ou estuda?', 'Eu trabalho como professor(a).'],
-        ['Foi ótimo falar com você! Você pode se despedir?', 'Tchau! Até logo.'],
-        ['Você tem irmãos ou irmãs?', 'Sim, eu tenho uma irmã.'],
-        ['O que você gosta de fazer no tempo livre?', 'Eu gosto de ler livros.'],
-        ['Foi um prazer conversar com você hoje!', 'O prazer foi todo meu!']
+        ['Como você está?', 'Eu estou bem, obrigado(a).'],
+        ['Você gosta de café?', 'Sim, eu gosto de café.'],
+        ['Qual é a sua cor favorita?', 'Minha cor favorita é azul.'],
+        ['Você tem um irmão ou uma irmã?', 'Sim, eu tenho uma irmã.'],
+        ['Você sabe contar? Diga: um, dois, três.', 'Um, dois, três.'],
+        ['Foi bom falar com você! Tchau!', 'Tchau! Até logo.']
       ],
+      cafe: [
+        ['Oi! Café ou chá?', 'Café, por favor.'],
+        ['Você quer açúcar?', 'Sim, por favor.'],
+        ['Você quer pão?', 'Sim, pão, por favor.'],
+        ['Para consumir aqui ou para levar?', 'Para consumir aqui, por favor.'],
+        ['São cinco dólares.', 'Aqui está.'],
+        ['Obrigado! Aproveite o seu café.', 'Obrigado(a)!'],
+        ['Precisa de mais alguma coisa?', 'Não, obrigado(a).'],
+        ['Tenha um bom dia! Tchau.', 'Tchau!']
+      ]
+    },
+    intermediate: {
       rotina: [
         ['A que horas você acorda todos os dias?', 'Eu acordo às sete horas.'],
         ['O que você faz todas as manhãs?', 'Eu tomo café da manhã e vou trabalhar.'],
@@ -237,9 +259,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
         ['O que você costuma almoçar?', 'Eu costumo comer arroz e frango.'],
         ['A que horas você vai dormir?', 'Eu vou dormir às dez horas.'],
         ['Obrigado por compartilhar sua rotina comigo!', 'De nada, foi divertido!']
-      ]
-    },
-    intermediate: {
+      ],
       fimDeSemana: [
         ['O que você fez no último fim de semana?', 'Eu fui à praia com meus amigos.'],
         ['Por que você gostou?', 'Porque o tempo estava bonito.'],
@@ -334,8 +354,8 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
   }
 
   let activeLevel = 'basic';
-  let activeScenario = 'cafe';
-  let steps = courses.basic.cafe;
+  let activeScenario = 'palavras';
+  let steps = courses.basic.palavras;
   let currentStep = 0;
   let attemptsThisQuestion = 0;
   let sessionStats = { firstTryCorrect: 0, reviewPhrases: [] };
@@ -575,7 +595,10 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
       return;
     }
     status.textContent = 'Conversa concluída ✦';
-    help.textContent = hasMore ? 'Muito bem! Toque em "Cenário" para praticar outra conversa neste nível.' : 'Muito bem! Você concluiu a prática de hoje.';
+    const ultimo = keys.indexOf(activeScenario) === keys.length - 1;
+    const proximoNivel = { basic: 'Intermediário', intermediate: 'Avançado' }[activeLevel];
+    help.textContent = !ultimo ? 'Muito bem! Toque em "Cenário" para o próximo assunto deste nível.'
+      : (proximoNivel ? `Muito bem! Você concluiu o nível ${levelNames[activeLevel]}. Agora toque em "${proximoNivel}" para continuar.` : 'Parabéns! Você concluiu todos os níveis de conversa.');
   }
 
   function assess(transcript) {

@@ -96,18 +96,18 @@
       <div class="maya-stage">
         <div class="maya-avatar-slot maya-avatar-slot-talk" id="maya-avatar-slot-talk"></div>
         <div class="maya-speech" id="maya-speech">
-          <p class="maya-speech-en" id="maya-speech-en">Hello! Welcome to the café. What would you like to drink?</p>
-          <p class="maya-speech-pt" id="maya-speech-pt">Olá! Bem-vindo ao café. O que você gostaria de beber?</p>
+          <p class="maya-speech-en" id="maya-speech-en">Hi! Let us start with easy words.</p>
+          <p class="maya-speech-pt" id="maya-speech-pt">Oi! Vamos começar com palavras fáceis.</p>
         </div>
         <div class="voice-controls"><button class="mic hidden" id="mic-button" aria-label="Falar com a Maya"><span>🎤</span></button><p id="mic-help">Maya está ouvindo — fale em inglês a qualquer momento.</p></div>
-        <div class="voice-tip"><span>✦</span><p><strong>Dica:</strong> <button id="voice-tip-example" data-say="I would like a coffee, please.">“I would like a coffee, please.”</button><br><small id="voice-tip-translation">Tradução: “Eu gostaria de um café, por favor.”</small></p></div>
+        <div class="voice-tip"><span>✦</span><p><strong>Dica:</strong> <button id="voice-tip-example" data-say="Hello!">“Hello!”</button><br><small id="voice-tip-translation">Tradução: “Olá!”</small></p></div>
       </div>
       <header><div><p class="eyebrow">CONVERSE COM A MAYA</p><h1>Vamos conversar</h1><p class="subtitle">Fale em inglês. Eu escuto, respondo e ajudo você a melhorar.</p></div></header>
       <div class="level-selector" aria-label="Escolha o nível de conversa"><button class="level-choice active" data-level="basic">Básico</button><button class="level-choice" data-level="intermediate">Intermediário</button><button class="level-choice" data-level="advanced">Avançado</button></div>
       <section class="voice-room">
-        <div class="voice-top"><span class="live-dot"></span><span id="voice-status">Maya pronta para conversar</span><button class="level-button" id="scenario-button">Cenário: Café ▾</button></div>
+        <div class="voice-top"><span class="live-dot"></span><span id="voice-status">Maya pronta para conversar</span><button class="level-button" id="scenario-button">Cenário: Palavras simples ▾</button></div>
         <div class="dialogue" id="dialogue" aria-live="polite">
-          <article class="message tutor"><span class="speaker"><img src="maya.png" alt="Maya"></span><div><small>MAYA</small><p>Hello! Welcome to the café. What would you like to drink?</p><button class="mini-listen" data-say="Hello! Welcome to the café. What would you like to drink?">🔊 Ouvir</button></div></article>
+          <article class="message tutor"><span class="speaker"><img src="maya.png" alt="Maya"></span><div><small>MAYA</small><p>Hi! Let us start with easy words.</p><button class="mini-listen" data-say="Hi! Let us start with easy words.">🔊 Ouvir</button></div></article>
         </div>
       </section>
     </section>
@@ -145,7 +145,7 @@
   <div class="maya-volume" id="maya-volume-box"><button type="button" id="maya-volume-icon" aria-label="Silenciar ou ativar a voz da Maya">🔊</button><input id="maya-volume" type="range" min="0" max="100" step="5" value="60" aria-label="Volume da Maya"><small id="maya-volume-nota" hidden>esta voz online ignora o volume: use o volume do aparelho</small></div>
   <script src="app.js?v=12"></script>
   <script src="interaction-fix.js"></script>
-  <script src="guided-voice.js?v=14"></script>
+  <script src="guided-voice.js?v=15"></script>
   <script src="pwa.js"></script>
   <script src="profile.js"></script>
   <script src="audio-unlock.js?v=2"></script>

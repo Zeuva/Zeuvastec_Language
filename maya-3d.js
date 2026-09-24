@@ -125,7 +125,8 @@ export async function iniciarMaya3D() {
     // Reforça o contato visual: a cada poucos segundos ela volta a olhar
     // pra câmera (o olhar aleatório da biblioteca só dura um instante).
     olharParaCamera(1200);
-    window.setInterval(() => { if (!document.hidden) olharParaCamera(3800); }, 3500);
+    if (!intervaloOlhar) intervaloOlhar = window.setInterval(() => { if (!document.hidden) olharParaCamera(3800); }, 3500);
+    vigiarContextoWebGL(wrapper);
     resolverPronta(true);
   } catch (e) {
     console.warn('[Maya 3D] Não foi possível carregar o avatar 3D, mantendo a foto da Maya:', e);
@@ -141,6 +142,53 @@ export async function iniciarMaya3D() {
   } finally {
     carregando = false;
   }
+}
+
+// No celular (Android), o sistema pode "derrubar" o contexto WebGL quando falta
+// memória de vídeo ou o app perde o foco (por exemplo, ao abrir o microfone):
+// o círculo da Maya ficava BRANCO e nunca voltava (2026-09-24). Agora o app
+// percebe, mostra a foto da Maya enquanto isso e recria o avatar 3D sozinho.
+let intervaloOlhar = null;
+let vigiaAtiva = false;
+let recriando = false;
+function contextoPerdido() {
+  try {
+    const gl = head && head.renderer && head.renderer.getContext();
+    return !!(gl && gl.isContextLost && gl.isContextLost());
+  } catch (e) { return false; }
+}
+async function recriarMaya() {
+  if (recriando) return;
+  recriando = true;
+  const container = document.getElementById('maya-3d-avatar');
+  const wrapper = document.getElementById('maya-avatar-big');
+  try {
+    if (wrapper) wrapper.classList.remove('maya-3d-ready');
+    try { if (head) head.dispose(); } catch (e) { /* contexto já perdido */ }
+    head = null; carregado = false; carregando = false;
+    if (container) container.innerHTML = '';
+    await iniciarMaya3D();
+  } finally { recriando = false; }
+}
+function vigiarContextoWebGL(wrapper) {
+  const canvas = head && head.renderer && head.renderer.domElement;
+  if (canvas) {
+    canvas.addEventListener('webglcontextlost', (ev) => {
+      ev.preventDefault();
+      wrapper.classList.remove('maya-3d-ready'); // volta a mostrar a foto da Maya
+      window.setTimeout(() => { if (contextoPerdido()) recriarMaya(); }, 2500);
+    }, false);
+    canvas.addEventListener('webglcontextrestored', () => {
+      window.setTimeout(() => { if (!contextoPerdido()) wrapper.classList.add('maya-3d-ready'); }, 400);
+    }, false);
+  }
+  if (vigiaAtiva) return;
+  vigiaAtiva = true;
+  const conferir = () => { if (carregado && !recriando && contextoPerdido()) recriarMaya(); };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) conferir(); });
+  window.addEventListener('focus', conferir);
+  window.addEventListener('pageshow', conferir);
+  window.setInterval(conferir, 3000);
 }
 
 function olharParaCamera(ms) {
