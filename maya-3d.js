@@ -68,7 +68,8 @@ export async function iniciarMaya3D() {
       cameraZoomEnable: false,
       cameraPanEnable: false,
       cameraRotateEnable: false,
-      modelFPS: 60,
+      // Celular/tablet: 30 quadros por segundo bastam e pesam metade (o app travava, 2026-09-24).
+      modelFPS: (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) ? 30 : 60,
       modelPixelRatio: 1,
       // Olhar pra câmera quase o tempo todo, como se falasse com o aluno
       // (pedido do usuário 2026-09-20: "olhar disperso o tempo todo"). A
@@ -127,6 +128,7 @@ export async function iniciarMaya3D() {
     olharParaCamera(1200);
     if (!intervaloOlhar) intervaloOlhar = window.setInterval(() => { if (!document.hidden) olharParaCamera(3800); }, 3500);
     vigiarContextoWebGL(wrapper);
+    atualizarExecucao();
     resolverPronta(true);
   } catch (e) {
     console.warn('[Maya 3D] Não foi possível carregar o avatar 3D, mantendo a foto da Maya:', e);
@@ -151,6 +153,7 @@ export async function iniciarMaya3D() {
 let intervaloOlhar = null;
 let vigiaAtiva = false;
 let recriando = false;
+let recriacoes = 0;
 function contextoPerdido() {
   try {
     const gl = head && head.renderer && head.renderer.getContext();
@@ -159,6 +162,8 @@ function contextoPerdido() {
 }
 async function recriarMaya() {
   if (recriando) return;
+  if (recriacoes >= 3) return; // não insiste para sempre: fica a foto da Maya
+  recriacoes += 1;
   recriando = true;
   const container = document.getElementById('maya-3d-avatar');
   const wrapper = document.getElementById('maya-avatar-big');
@@ -190,6 +195,22 @@ function vigiarContextoWebGL(wrapper) {
   window.addEventListener('pageshow', conferir);
   window.setInterval(conferir, 3000);
 }
+
+// A Maya só aparece em Início e Conversar. Nas outras telas (Aprender, Revisar,
+// Simulados, Progresso) ela ficava escondida mas continuava sendo desenhada
+// 30–60 vezes por segundo, o que travava o app no celular (2026-09-24).
+// Agora a renderização pausa fora dessas telas e quando o app vai para o fundo.
+let viewAtual = 'home';
+function atualizarExecucao() {
+  if (!head || !carregado) return;
+  const deveRodar = !document.hidden && (viewAtual === 'home' || viewAtual === 'talk');
+  try {
+    if (deveRodar) head.start();
+    else head.stop();
+  } catch (e) { /* biblioteca sem start/stop */ }
+}
+window.addEventListener('maya-view-changed', (ev) => { viewAtual = (ev.detail && ev.detail.view) || viewAtual; atualizarExecucao(); });
+document.addEventListener('visibilitychange', atualizarExecucao);
 
 function olharParaCamera(ms) {
   if (!head || !carregado) return;
