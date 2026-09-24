@@ -46,7 +46,7 @@ window.simuladorBank = {
   ],
   intermediario: [
     ['I went', 'Eu fui', 'I went to the market yesterday.'],
-    ['I will go', 'Eu irei', 'I will go to the party tonight.'],
+    ['I will go', 'Eu irei', 'I will go to the gym tonight.'],
     ['I have been', 'Eu tenho estado / já estive', 'I have been to Portugal twice.'],
     ['Although', 'Embora', 'Although it was raining, we went out.'],
     ['However', 'Porém / no entanto', 'The plan was good; however, it failed.'],

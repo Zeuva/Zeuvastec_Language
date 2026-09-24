@@ -187,7 +187,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
         { question: 'How do you handle a disagreement at work?', example: 'I listen carefully and try to find common ground.', check: (t) => /\b(i listen|i try|common ground|disagreement)\b/.test(t) },
         { question: 'What makes a leader effective?', example: 'An effective leader communicates clearly and empowers the team.', check: (t) => /\b(leader|communicat|team|effective)\b/.test(t) },
         { question: 'How would you defend an important decision?', example: 'I would present evidence and explain the expected results.', check: (t) => /\b(i would|evidence|because|explain)\b/.test(t) },
-        { question: 'How do you motivate a team that is losing focus?', example: 'I would set clear goals and celebrate small wins.', check: (t) => /\b(i would|motivate|goal|celebrate)\b/.test(t) },
+        { question: 'How do you motivate a team that is losing focus?', example: 'I would set clear goals and recognize small wins.', check: (t) => /\b(i would|motivate|goal|recognize)\b/.test(t) },
         { question: 'How do you usually respond to feedback?', example: 'I try to stay open-minded and learn from it.', check: (t) => /\b(i try|feedback|open|learn)\b/.test(t) },
         { question: 'How do you build trust within a team?', example: 'I build trust through consistency and honesty.', check: (t) => /\b(trust|consisten|honest|build)\b/.test(t) },
         { question: 'How do you handle failure as a leader?', example: 'I try to learn from it and adjust quickly.', check: (t) => /\b(failure|learn|adjust|mistake)\b/.test(t) },
@@ -421,7 +421,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
   // Fase 1 do ciclo ADQUIRIR → PRATICAR → AJUSTAR: uma prévia bilíngue
   // de 3 frases-chave antes de começar a prática, como "input" antes do "output".
   function runAcquirePhase(level, scenario) {
-    const intro = `${levelNames[level]}, ${scenarioNames[level][scenario]}. Let's start by acquiring a few key phrases.`;
+    const intro = `${levelNames[level]}, ${scenarioNames[level][scenario]}. First, listen to some useful phrases.`;
     message(intro, 'tutor');
     help.textContent = 'Fase 1 de 3 — ADQUIRIR: ouça e associe estas frases-chave antes de praticar.';
     const previewSteps = courses[level][scenario].slice(0, 3);
@@ -445,7 +445,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
 
   function startPractice(level, scenario) {
     status.textContent = `🟢 PRATICAR · ${scenarioNames[level][scenario]} · pergunta 1 de ${steps.length}`;
-    const bridge = "Great! Now let's practice. I'll ask you questions, just answer naturally.";
+    const bridge = "Great! Now I will ask you questions. Answer me, please.";
     message(bridge, 'tutor');
     say(bridge, askNext);
   }

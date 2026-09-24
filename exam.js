@@ -16,10 +16,19 @@ function startExam(type, moduleId=null){
     const modLessons = lessons.filter(l=>l.module===moduleId);
     modLessons.forEach(l=> l.quiz.forEach(q=> pool.push({...q, lessonTitle:l.title, module: l.module})));
     pool = pool.sort(()=>0.5-Math.random());
-  } else if(window.generateSimuladoQuestions){
-    // Banco curado: perguntas sempre variadas, sem repetição, cobrindo básico → avançado.
+  } else if(typeof lessons !== 'undefined' && lessons.length){
+    // As perguntas vêm das próprias lições, por nível (Básico → Intermediário → Avançado),
+    // sem repetir a mesma pergunta e sem misturar níveis.
     const tiers = type==='fluency' ? ['avancado'] : type==='quick' ? ['basico','intermediario'] : ['basico','intermediario','avancado'];
-    pool = window.generateSimuladoQuestions(tiers, examTypes[type].count);
+    const NIVEL = {basico:'Básico', intermediario:'Intermediário', avancado:'Avançado'};
+    const porNivel = Math.ceil(examTypes[type].count / tiers.length);
+    tiers.forEach(tr=>{
+      const vistos = new Set(); let itens = [];
+      lessons.filter(l=>l.level===NIVEL[tr]).forEach(l=> l.quiz.forEach(q=>{ if(!vistos.has(q.q)){ vistos.add(q.q); itens.push({q:q.q, opts:q.opts.slice(), ans:q.ans, type:q.type, lessonTitle:l.title, module:l.module}); } }));
+      itens = itens.sort(()=>0.5-Math.random()).slice(0, porNivel);
+      pool = pool.concat(itens);
+    });
+    pool = pool.sort(()=>0.5-Math.random());
   } else if(type==='fluency'){
     const fluLessons = lessons.filter(l=>l.module>=5);
     fluLessons.forEach(l=> l.quiz.forEach(q=> pool.push({...q, lessonTitle:l.title, module:l.module})));
@@ -51,7 +60,9 @@ function startExam(type, moduleId=null){
   showView('learn');
 }
 
+let examAdvance = null;
 function renderExamQuestion(){
+  clearTimeout(examAdvance);
   if(!currentExam) return;
   const q = currentExam.questions[currentExam.current];
   const total = currentExam.questions.length;
@@ -75,27 +86,30 @@ function renderExamQuestion(){
     <div style="display:flex;justify-content:space-between;margin-top:20px">
       <button id="exam-prev" class="tab" ${currentExam.current===0?'disabled':''}>← Anterior</button>
       <span style="font-size:12px;color:#718078">${currentExam.current+1} de ${total}</span>
-      <button id="exam-next" class="tab" style="background:#276246;color:#fff" ${currentExam.current===total-1?'disabled':''}>Próxima →</button>
+      <button id="exam-next" class="tab" style="background:#276246;color:#fff" ${currentExam.current===total-1 && currentExam.answers[currentExam.current]===undefined?'disabled':''}>${currentExam.current===total-1?'Finalizar ✓':'Próxima →'}</button>
     </div>
   `;
   
   container.querySelectorAll('.exam-option').forEach(btn=>{
-    btn.onclick = ()=>{
-      const ans = parseInt(btn.dataset.ans);
+    btn.onclick = ()=>{ if(currentExam.answers[currentExam.current]!==undefined) return; responder(parseInt(btn.dataset.ans), true); };
+  });
+  const responder = (ans, nova)=>{
+    {
       const correct = ans===q.ans;
+      const btn = container.querySelector(`[data-ans="${ans}"]`);
       // Mark
       container.querySelectorAll('.exam-option').forEach(b=>{b.style.pointerEvents='none'; b.style.opacity='0.6';});
       btn.style.opacity='1';
       if(correct){
         btn.style.background='#e8f4d1'; btn.style.borderColor='#276246'; btn.style.color='#166534';
-        currentExam.score++;
+        if(nova) currentExam.score++;
       } else {
         btn.style.background='#ffe4e6'; btn.style.borderColor='#dc2626';
         // Show correct
         const correctBtn = container.querySelector(`[data-ans="${q.ans}"]`);
         if(correctBtn){ correctBtn.style.background='#e8f4d1'; correctBtn.style.borderColor='#276246'; correctBtn.style.opacity='1'; }
       }
-      currentExam.answers[currentExam.current]=ans;
+      if(nova) currentExam.answers[currentExam.current]=ans;
       const fb = document.getElementById('exam-feedback');
       if(fb){
         fb.innerHTML = correct ? 
@@ -103,7 +117,10 @@ function renderExamQuestion(){
           `<div style="padding:12px;background:#ffe4e6;border-radius:10px;color:#991b1b"><strong>❌ Incorreto.</strong> Resposta: ${q.opts[q.ans]}<br><small style="color:#718078">Módulo ${q.module} · ${q.lessonTitle}</small></div>`;
       }
       // Auto next after delay
-      setTimeout(()=>{
+      if(!nova) return;
+      clearTimeout(examAdvance);
+      examAdvance = setTimeout(()=>{
+        if(!currentExam) return;
         if(currentExam.current < total-1){
           currentExam.current++;
           renderExamQuestion();
@@ -111,13 +128,15 @@ function renderExamQuestion(){
           finishExam();
         }
       }, 1200);
-    };
-  });
+    }
+  };
+  // pergunta já respondida (voltou com "Anterior"): mostra o resultado, sem contar de novo
+  if(currentExam.answers[currentExam.current]!==undefined) responder(currentExam.answers[currentExam.current], false);
   
   const prevBtn = document.getElementById('exam-prev');
   const nextBtn = document.getElementById('exam-next');
   if(prevBtn) prevBtn.onclick=()=>{ if(currentExam.current>0){ currentExam.current--; renderExamQuestion(); }};
-  if(nextBtn) nextBtn.onclick=()=>{ if(currentExam.current<total-1){ currentExam.current++; renderExamQuestion(); }};
+  if(nextBtn) nextBtn.onclick=()=>{ if(currentExam.current<total-1){ currentExam.current++; renderExamQuestion(); } else if(currentExam.answers[currentExam.current]!==undefined){ finishExam(); }};
 }
 
 function startExamTimer(){
@@ -133,6 +152,7 @@ function startExamTimer(){
 }
 
 function finishExam(){
+  clearTimeout(examAdvance);
   if(examTimer) clearInterval(examTimer);
   const total = currentExam.questions.length;
   const score = currentExam.score;
@@ -187,6 +207,7 @@ function finishExam(){
 function closeExam(){
   const modal = document.getElementById('exam-modal');
   if(modal){ modal.classList.add('hidden'); modal.style.display='none'; }
+  clearTimeout(examAdvance);
   if(examTimer) clearInterval(examTimer);
   currentExam=null;
   renderLessons();
@@ -195,7 +216,7 @@ function closeExam(){
 // Certificados
 function generateCertificate(moduleId, pct){
   const studentName = localStorage.getItem('zeuvastec-student-name') || 'Aluno Zeuvastec';
-  const moduleNames = {1:'Foundations',2:'Everyday Life',3:'Communication',4:'Work & Life',5:'Professional English',6:'Fluency Mastery'};
+  const moduleNames = {1:'Palavras básicas',2:'Primeiras frases',3:'Dia a dia',4:'Profissional e avançado'};
   const moduleName = moduleNames[moduleId] || `Módulo ${moduleId}`;
   const dateStr = new Date().toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
   
