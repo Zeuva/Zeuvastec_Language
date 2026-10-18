@@ -258,8 +258,9 @@ function montarIntro(nome){
   };
 }
 function homeVisivel(){ const h=document.getElementById('home-view'); return !!h && !h.classList.contains('hidden'); }
+function lessonAberta(){ return !!document.querySelector('.modal:not(.hidden)'); }
 function falarIntro(){
-  if(!introTexto || !homeVisivel()) return;
+  if(!introTexto || !homeVisivel() || lessonAberta()) return;
   introCancelada=false; introJaFalou=true;
   const dica=document.getElementById('maya-intro-hint'); if(dica) dica.hidden=true;
   const {en,pt}=introTexto;
@@ -303,7 +304,8 @@ async function darBoasVindas(nome){
     if(alvo&&(alvo.closest('#maya-intro-hint')||alvo.closest('#maya-intro-replay'))) return;
     parar();
     // primeiro toque foi pra outra tela: sem introdução
-    if(introJaFalou||(alvo&&alvo.closest('[data-view]'))) return;
+    // toque dentro de uma lição/janela aberta (ex.: palavras do vocabulário): sem introdução
+    if(introJaFalou||(alvo&&(alvo.closest('[data-view]')||alvo.closest('.modal')))) return;
     setTimeout(falarIntro,700);
   }
   if(hint){ hint.hidden=false; hint.onclick=()=>{ parar(); setTimeout(falarIntro,700); }; }

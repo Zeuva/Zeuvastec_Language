@@ -128,8 +128,12 @@ h1,h2{letter-spacing:.005em !important;font-weight:700 !important}
   border:1px dashed rgba(142,151,207,.45);
   box-shadow:inset 0 0 60px rgba(79,208,255,.10);
 }
-.maya-avatar-big,.maya-avatar-big.maya-avatar-big-home{
+.maya-avatar-big.maya-avatar-big-home{
   width:78% !important;height:auto !important;aspect-ratio:1/1;
+}
+/* Em "Conversar" a Maya mantém o tamanho fixo original (280px). */
+.maya-avatar-slot-talk .maya-avatar-big{width:280px !important;height:280px !important;max-width:80vw;max-height:80vw}
+.maya-avatar-big{
   border:0 !important;
   background:radial-gradient(circle at 50% 35%,#1a4a72,#081627 70%) !important;
   box-shadow:0 0 0 6px rgba(79,208,255,.10),0 0 70px 10px rgba(79,208,255,.30),inset 0 -30px 60px rgba(22,127,202,.35) !important;
