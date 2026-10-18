@@ -1,0 +1,428 @@
+/* ============================================================
+   TEMA FUTURO — painel holográfico de missão.
+   Muda a DISPOSIÇÃO da tela (dock flutuante, Maya em holograma,
+   trilha em órbita horizontal), não só as cores.
+   Só CSS: nenhum comportamento muda. Carregar DEPOIS de
+   trilha-moderna.css.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Sora:wght@400;600;700&display=swap');
+
+:root{
+  --void:#05071a;
+  --panel:#0c1030;
+  --panel-2:#121845;
+  --edge:#28306b;
+  --cyan:#3fd9ff;
+  --magenta:#3d6bff;      /* azul-elétrico (substitui o rosa) */
+  --lime:#9fefff;           /* azul-gelo: progresso e ação */
+  --text:#e9edff;
+  --dim:#8e97cf;
+  --cut:14px;               /* canto chanfrado dos painéis */
+  --ink:var(--text);--muted:var(--dim);--cream:var(--void);--paper:var(--panel);--line:var(--edge);--green:var(--cyan);
+  --stage-1:#b8f4ff;--stage-2:#6fe3ff;--stage-3:#3fc4ff;--stage-4:#3d9bff;--stage-5:#3d6bff;--stage-6:#e6f6ff;
+  color-scheme:dark;
+}
+
+/* ---------- Espaço de fundo: céu + piso em grade ---------- */
+body{
+  background:
+    radial-gradient(900px 520px at 78% -8%, rgba(22,127,202,.30), transparent 62%),
+    radial-gradient(800px 560px at 18% 8%, rgba(22,127,202,.20), transparent 62%),
+    var(--void) !important;
+  color:var(--text);
+  font-family:'Sora',sans-serif !important;
+}
+body::before{
+  content:"";position:fixed;left:-20%;right:-20%;bottom:-2px;height:46vh;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(transparent 0 96%, rgba(79,208,255,.35) 96%) 0 0/100% 46px,
+    linear-gradient(90deg, transparent 0 97%, rgba(79,208,255,.30) 97%) 0 0/60px 100%;
+  transform:perspective(420px) rotateX(62deg);transform-origin:bottom;
+  -webkit-mask:linear-gradient(transparent,#000 70%);mask:linear-gradient(transparent,#000 70%);
+  opacity:.55;
+}
+h1,h2,h3,.eyebrow,.module-badge,.level-badge,.nav-item,.primary,.tab,button{font-family:'Chakra Petch',sans-serif !important}
+h1,h2{letter-spacing:.005em !important;font-weight:700 !important}
+.eyebrow{color:var(--cyan) !important;letter-spacing:.22em !important;font-weight:600 !important}
+.subtitle,.section-heading p{color:var(--dim) !important}
+
+/* ---------- Navegação: dock flutuante ---------- */
+.sidebar{
+  inset:18px auto 18px 18px !important;
+  width:96px !important;
+  padding:18px 10px !important;
+  border-radius:30px !important;
+  background:rgba(12,16,48,.78) !important;
+  backdrop-filter:blur(16px);
+  border:1px solid var(--edge) !important;
+  box-shadow:0 0 0 1px rgba(79,208,255,.06),0 30px 60px -30px rgba(0,0,0,.9) !important;
+  align-items:center;
+  max-height:calc(100vh - 36px) !important;
+}
+.brand{margin:0 0 26px !important;padding:0 !important;justify-content:center}
+.brand>span:last-child{display:none !important}
+.brand-mark{
+  width:46px !important;height:46px !important;border-radius:14px !important;font-size:24px !important;
+  background:conic-gradient(from 210deg,#b8f4ff,var(--cyan),var(--magenta),#b8f4ff) !important;
+  color:var(--void) !important;box-shadow:0 0 24px rgba(79,208,255,.5) !important;
+}
+.sidebar nav{gap:6px !important;width:100%}
+.nav-item{
+  display:flex !important;flex-direction:column;align-items:center;gap:5px;
+  padding:10px 2px !important;border-radius:18px !important;
+  font-size:10.5px !important;letter-spacing:.04em;text-align:center !important;line-height:1.15;
+  color:var(--dim) !important;transform:none !important;
+}
+.nav-item .nav-icon{width:auto !important;height:22px !important}
+.nav-item .nav-icon svg{width:22px !important;height:22px !important}
+.nav-item::before{display:none !important}
+.nav-item:hover{color:var(--text) !important;background:rgba(255,255,255,.05) !important}
+.nav-item.active{
+  color:var(--void) !important;
+  background:linear-gradient(160deg,var(--cyan),#7a9bff) !important;
+  box-shadow:0 0 22px rgba(79,208,255,.45);
+}
+.daily-card{
+  background:transparent !important;border:0 !important;box-shadow:none !important;padding:8px 0 0 !important;
+}
+.daily-card p,.daily-card strong{display:none !important}
+.daily-card small{color:var(--dim) !important;font-size:10px !important;display:block;margin-top:6px}
+.ring{
+  width:58px !important;height:58px !important;border:0 !important;
+  background:conic-gradient(var(--lime) var(--p,0%), #16304a 0) !important;
+  box-shadow:0 0 18px rgba(207,234,255,.30);
+}
+.ring span{background:var(--panel) !important;color:var(--text);width:46px !important;height:46px !important;font-family:'Chakra Petch',sans-serif}
+.profile{margin:12px 0 0 !important;padding:0 !important;justify-content:center}
+.profile>div:last-child{display:none}
+.avatar{background:var(--magenta) !important;color:#fff !important;box-shadow:0 0 14px rgba(22,127,202,.6) !important}
+
+.content{margin-left:132px !important;width:calc(100% - 132px) !important;padding-top:40px !important}
+
+/* ---------- Início: Maya em holograma + saudação gigante ---------- */
+#home-view header{
+  display:grid !important;
+  grid-template-columns:minmax(300px,400px) minmax(0,1fr);
+  align-items:center !important;gap:12px 46px !important;
+  position:relative;margin-bottom:28px !important;
+}
+#home-view header::after{display:none !important}
+.maya-avatar-slot-home{
+  position:relative;display:grid !important;place-items:center;grid-template-columns:100%;grid-template-rows:100%;
+  width:100%;aspect-ratio:1/1;max-width:400px;
+}
+.maya-avatar-slot-home::before,.maya-avatar-slot-home::after{
+  content:"";position:absolute;border-radius:50%;pointer-events:none;
+}
+/* anel de luz girando */
+.maya-avatar-slot-home::before{
+  inset:2%;
+  background:conic-gradient(from 0deg,transparent 0 12%,var(--cyan) 22%,transparent 32% 52%,var(--magenta) 64%,transparent 74%);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));
+  animation:holo-gira 9s linear infinite, holo-entra 1.1s cubic-bezier(.2,.7,.2,1) both;
+}
+/* órbita tracejada com marcações */
+.maya-avatar-slot-home::after{
+  inset:-1%;
+  border:1px dashed rgba(142,151,207,.45);
+  box-shadow:inset 0 0 60px rgba(79,208,255,.10);
+}
+.maya-avatar-big,.maya-avatar-big.maya-avatar-big-home{
+  width:78% !important;height:auto !important;aspect-ratio:1/1;
+  border:0 !important;
+  background:radial-gradient(circle at 50% 35%,#1a4a72,#081627 70%) !important;
+  box-shadow:0 0 0 6px rgba(79,208,255,.10),0 0 70px 10px rgba(79,208,255,.30),inset 0 -30px 60px rgba(22,127,202,.35) !important;
+}
+.maya-avatar-big::after{
+  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(79,208,255,.07) 0 2px,transparent 2px 5px);
+  mix-blend-mode:screen;
+}
+@keyframes holo-gira{to{transform:rotate(360deg)}}
+@keyframes holo-entra{from{opacity:0;transform:scale(.8) rotate(-90deg)}}
+
+#home-view header h1{
+  font-size:clamp(46px,6.2vw,92px) !important;line-height:.95 !important;margin:6px 0 14px !important;
+  color:var(--text);
+}
+#home-view h1 b,#student-name{
+  background:linear-gradient(95deg,var(--cyan),var(--magenta));-webkit-background-clip:text;background-clip:text;color:transparent !important;
+  display:inline-block;font-family:'Chakra Petch',sans-serif !important;
+}
+#home-view .subtitle{font-size:17px !important;max-width:34ch;line-height:1.5}
+.brand-signature{
+  text-align:left !important;font-family:'Chakra Petch',sans-serif !important;color:var(--lime) !important;
+  letter-spacing:.3em !important;font-size:12px !important;
+}
+.sound{
+  position:absolute !important;top:0;right:0;
+  background:var(--panel) !important;border:1px solid var(--edge) !important;color:var(--cyan) !important;
+}
+
+/* Painéis com canto chanfrado */
+.maya-intro,.hero,#modules-grid .module-card,#lesson-grid .lesson-card,#lesson-catalog .catalog-card,
+#lesson-catalog .catalog-head,.flashcard,.stats article,.progress-card,.voice-room,.module-card{
+  clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut));
+  border-radius:0 !important;
+}
+
+/* Fala da Maya como transmissão */
+.maya-intro{
+  position:relative;
+  background:linear-gradient(90deg,rgba(79,208,255,.10),rgba(12,16,48,.85) 30%) !important;
+  border:0 !important;border-left:3px solid var(--cyan) !important;box-shadow:none !important;
+  padding:20px 24px 20px 26px !important;margin-bottom:22px !important;
+}
+.maya-intro-en{font-family:'Sora',sans-serif !important;font-weight:600 !important;color:var(--text) !important;font-size:18px !important}
+.maya-intro-pt{color:var(--dim) !important}
+.maya-intro-btn{
+  background:transparent !important;color:var(--cyan) !important;border:1px solid var(--cyan) !important;
+  font-family:'Chakra Petch',sans-serif !important;letter-spacing:.06em;
+}
+.maya-intro-btn:hover{background:rgba(79,208,255,.12) !important}
+
+/* Missão do dia */
+.hero{
+  background:linear-gradient(120deg,#123250,#0a1a2c 70%) !important;
+  border:0 !important;box-shadow:none !important;min-height:300px !important;
+}
+.hero-copy{padding:40px 44px !important}
+.hero h2{font-size:42px !important;line-height:1.02 !important}
+.hero .eyebrow{color:var(--lime) !important}
+.hero-copy>p:not(.eyebrow){color:#c3c9f0 !important;font-size:15px !important}
+.hero-art{position:relative}
+.hero-art::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,#0f2a45 0,transparent 30%),linear-gradient(0deg,rgba(22,127,202,.35),rgba(79,208,255,.12) 60%,transparent);
+  mix-blend-mode:normal;
+}
+.primary{
+  background:var(--lime) !important;color:var(--void) !important;border-radius:0 !important;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  letter-spacing:.06em;font-weight:700 !important;padding:14px 22px !important;
+  box-shadow:none !important;
+}
+.primary:hover{filter:brightness(1.08)}
+
+.section-heading{margin-top:52px !important}
+.section-heading h2{font-size:30px !important}
+.section-heading h2::before{background:var(--cyan) !important;box-shadow:0 0 12px var(--cyan)}
+.link-btn{color:var(--cyan) !important;font-family:'Chakra Petch',sans-serif !important;letter-spacing:.06em}
+
+/* ---------- Trilha em órbita: 6 cápsulas lado a lado ---------- */
+#modules-grid{
+  display:grid !important;
+  grid-template-columns:repeat(6,minmax(150px,1fr));
+  gap:14px !important;
+  position:relative;
+  overflow-x:auto;
+  padding:8px 4px 18px;
+  scroll-snap-type:x mandatory;
+}
+#modules-grid::before{
+  content:"";position:absolute;left:6%;right:6%;top:53px;height:2px;z-index:0;
+  background:linear-gradient(90deg,var(--stage-1),var(--stage-3),var(--stage-5),var(--stage-6));
+  box-shadow:0 0 14px rgba(79,208,255,.6);
+  transform-origin:left;animation:orbita-desenha 1.4s .2s cubic-bezier(.3,.7,.2,1) both;
+}
+@keyframes orbita-desenha{from{transform:scaleX(0)}}
+#modules-grid .module-card{
+  margin:0 !important;
+  display:flex !important;flex-direction:column;align-items:center;text-align:center;gap:6px;
+  padding:16px 14px 18px !important;
+  background:linear-gradient(180deg,rgba(18,24,69,.0) 0 26px,var(--panel) 26px) !important;
+  border:0 !important;box-shadow:none !important;
+  scroll-snap-align:start;
+  min-width:0;
+}
+#modules-grid .module-card::before{display:none !important}
+#modules-grid .module-card:hover{transform:translateY(-4px) !important}
+#modules-grid .module-card-top{display:flex !important;flex-direction:column;align-items:center;gap:10px}
+#modules-grid .module-icon{
+  position:relative;z-index:2;
+  width:74px !important;height:74px !important;font-size:30px !important;border-radius:50% !important;
+  background:radial-gradient(circle at 35% 30%,#fff3,transparent 50%),var(--panel-2) !important;
+  border:2px solid var(--stage);
+  box-shadow:0 0 0 6px var(--void),0 0 26px color-mix(in srgb,var(--stage) 75%,transparent) !important;
+}
+#modules-grid .module-badge{color:var(--dim) !important;font-size:9px !important;letter-spacing:.08em !important;white-space:nowrap}
+#modules-grid .module-badge::after{content:"\A" var(--level) !important;white-space:pre !important;color:var(--stage) !important;font-size:20px;letter-spacing:.04em}
+#modules-grid .module-card h3{font-family:'Chakra Petch',sans-serif !important;font-size:18px !important;margin:2px 0 !important;color:var(--text)}
+#modules-grid .module-card p{font-size:11.5px !important;color:var(--dim) !important;flex:1}
+#modules-grid .module-progress{width:100%;height:6px !important;margin-top:8px !important;background:#16304a !important;border-radius:0 !important}
+#modules-grid .module-progress i,#modules-grid .module-card:nth-child(-n+2) .module-progress i{
+  background:var(--lime) !important;border-radius:0 !important;box-shadow:0 0 10px rgba(207,234,255,.8) !important;
+}
+#modules-grid .module-card small{justify-self:auto !important;align-self:center !important;color:var(--dim) !important;font-size:11px !important}
+
+/* ---------- Próximas lições ---------- */
+#lesson-grid .lesson-card,.lesson-card{
+  background:var(--panel) !important;border:0 !important;box-shadow:none !important;color:var(--text);
+  border-top:2px solid var(--edge) !important;
+}
+#lesson-grid .lesson-card:first-child{
+  background:linear-gradient(160deg,rgba(79,208,255,.16),var(--panel) 60%) !important;border-top-color:var(--cyan) !important;
+}
+.lesson-card .number{background:transparent !important;color:var(--cyan) !important;font-family:'Chakra Petch',sans-serif !important;font-size:26px !important;padding:0 !important}
+#lesson-grid .lesson-card h3{font-family:'Chakra Petch',sans-serif !important;color:var(--text)}
+.lesson-card p{color:var(--dim) !important}
+.level-badge{background:rgba(207,234,255,.14) !important;color:var(--lime) !important;border:0 !important;border-radius:0 !important}
+#lesson-grid .lesson-card button{background:transparent !important;color:var(--cyan) !important;border:1px solid var(--cyan) !important;border-radius:0 !important}
+
+/* ---------- Aprender: catálogo em 3 colunas ---------- */
+#lesson-catalog > .lesson-catalog{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px !important}
+#lesson-catalog .catalog-head{
+  background:linear-gradient(90deg,color-mix(in srgb,var(--stage) 22%,var(--panel)),var(--panel) 70%) !important;
+  border:0 !important;border-left:3px solid var(--stage) !important;
+}
+#lesson-catalog .catalog-head::before{background:transparent !important;border:2px solid var(--stage);color:var(--stage) !important;box-shadow:0 0 16px color-mix(in srgb,var(--stage) 60%,transparent) !important;font-family:'Chakra Petch',sans-serif !important}
+#lesson-catalog .catalog-head h3{font-family:'Chakra Petch',sans-serif !important;color:var(--text)}
+#lesson-catalog .catalog-head .level-badge{background:var(--void) !important}
+#lesson-catalog .catalog-card{background:var(--panel) !important;border:0 !important;box-shadow:none !important;padding:18px 18px 16px 22px !important}
+#lesson-catalog .catalog-card::before{background:var(--stage) !important;width:3px !important;box-shadow:0 0 10px var(--stage)}
+#lesson-catalog .catalog-card.done{background:linear-gradient(160deg,rgba(207,234,255,.08),var(--panel) 60%) !important}
+#lesson-catalog .catalog-card h2{font-family:'Chakra Petch',sans-serif !important;font-size:19px !important;color:var(--text)}
+#lesson-catalog .catalog-card p{color:var(--dim) !important}
+#lesson-catalog .catalog-card small{color:var(--cyan) !important}
+#lesson-catalog .catalog-card .level-badge{background:color-mix(in srgb,var(--stage) 20%,transparent) !important;color:var(--stage) !important}
+#lesson-catalog .catalog-card button{background:var(--cyan) !important;color:var(--void) !important;border-radius:0 !important}
+#lesson-catalog .catalog-card.done button{background:transparent !important;color:var(--lime) !important;box-shadow:inset 0 0 0 1px var(--lime) !important}
+
+/* ---------- Janelas, lição, revisão, progresso ---------- */
+.modal{background:rgba(3,4,16,.82) !important}
+.modal-box{
+  background:var(--panel) !important;border:1px solid var(--edge) !important;border-radius:0 !important;color:var(--text);
+  clip-path:polygon(20px 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%,0 20px);
+}
+#lesson-modal .modal-box{border-top:2px solid var(--cyan) !important}
+.close{color:var(--dim) !important;background:transparent !important}
+#lesson-content .tabs{background:var(--void) !important;border-radius:0 !important}
+#lesson-content .tabs .tab{background:transparent !important;color:var(--dim) !important;border-radius:0 !important}
+#lesson-content .tabs .tab.active,.tab.active{background:var(--cyan) !important;color:var(--void) !important;box-shadow:none !important}
+.tab{background:var(--panel-2) !important;color:var(--text) !important;border-radius:0 !important}
+#lesson-content [style*="background:#fff"],#lesson-content .option,#exam-content [style*="background:#fff"],.vocab-item{
+  background:var(--panel-2) !important;border-color:var(--edge) !important;color:var(--text) !important;border-radius:0 !important;
+}
+#lesson-content .option:hover{border-color:var(--cyan) !important;background:#14304c !important}
+#lesson-content [style*="#f5fae5"],#lesson-content [style*="#e8f4d1"],#lesson-content [style*="#dbeafe"],#exam-content [style*="#f5fae5"]{background:rgba(79,208,255,.10) !important;color:var(--text) !important}
+#lesson-content [style*="color:#276246"],#exam-content [style*="color:#276246"],#lesson-content h4{color:var(--cyan) !important}
+#lesson-content [style*="color:#718078"],#exam-content [style*="color:#718078"]{color:var(--dim) !important}
+.flashcard,.stats article,.progress-card,.voice-room,.maya-speech,.voice-tip,.module-card{background:var(--panel) !important;border:0 !important;color:var(--text)}
+.stats strong{font-family:'Chakra Petch',sans-serif !important;color:var(--cyan)}
+.bars i{background:#16304a !important;border-radius:0 !important}.bars .today{background:var(--lime) !important;box-shadow:0 0 14px rgba(207,234,255,.7)}
+.listen,.mini-listen{background:var(--panel-2) !important;color:var(--text) !important}
+.level-choice{background:var(--panel) !important;color:var(--dim) !important;border:1px solid var(--edge) !important;border-radius:0 !important}
+.level-choice.active{background:var(--cyan) !important;color:var(--void) !important}
+.maya-avatar-slot-talk .maya-avatar-big{box-shadow:0 0 70px 10px rgba(79,208,255,.3) !important}
+.maya-volume{background:var(--panel) !important;border:1px solid var(--edge) !important}
+.maya-volume input{accent-color:var(--cyan)}
+input,select,textarea{background:var(--void);color:var(--text);border-color:var(--edge)}
+#exam-view .module-card{border:0 !important}
+
+/* ---------- Celular: dock vira barra inferior ---------- */
+@media (max-width:900px){
+  .sidebar{
+    inset:auto 10px 10px 10px !important;width:auto !important;height:68px !important;max-height:none !important;
+    flex-direction:row !important;padding:6px 8px !important;border-radius:24px !important;overflow:visible !important;
+    z-index:50;
+  }
+  .brand,.daily-card,.profile{display:none !important}
+  .sidebar nav{display:flex !important;flex-direction:row;justify-content:space-between;width:100%;gap:2px !important}
+  .nav-item{flex:1;font-size:9px !important;padding:8px 0 !important;border-radius:16px !important}
+  .content{margin-left:0 !important;width:100% !important;padding:24px 18px 110px !important}
+  #home-view header{grid-template-columns:1fr !important;text-align:center;justify-items:center}
+  .maya-avatar-slot-home{max-width:300px;margin-inline:auto}
+  #home-view .subtitle{margin-inline:auto}
+  .brand-signature{text-align:center !important}
+  #modules-grid{grid-template-columns:repeat(6,72%) !important;margin-inline:-18px;padding-inline:18px}
+  #modules-grid::before{left:18px;right:auto;width:calc(6 * 72% + 5 * 14px - 36px)}
+  #lesson-catalog > .lesson-catalog{grid-template-columns:1fr !important}
+  .hero h2{font-size:32px !important}
+  .maya-volume{bottom:88px !important}
+}
+@media (min-width:901px) and (max-width:1250px){
+  #lesson-catalog > .lesson-catalog{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  #modules-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #modules-grid::before{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .maya-avatar-slot-home::before,#modules-grid::before{animation:none !important}
+}
+
+/* ---------- Conversar e simulados (cores fixas no código) ---------- */
+.voice-room{background:var(--panel) !important}
+.voice-top{background:var(--panel-2) !important;color:var(--text) !important;border-color:var(--edge) !important}
+.voice-top .level-button{background:var(--void) !important;color:var(--cyan) !important;border:1px solid var(--edge) !important}
+.dialogue{background:transparent !important}
+.message>div,.message .bubble{background:var(--panel-2) !important;color:var(--text) !important;border:1px solid var(--edge) !important;border-radius:0 14px 14px 14px !important;box-shadow:none !important}
+.message.user>div{background:linear-gradient(135deg,rgba(79,208,255,.22),rgba(169,123,255,.22)) !important;border-color:rgba(79,208,255,.4) !important;border-radius:14px 0 14px 14px !important}
+.message small{color:var(--cyan) !important}
+.message p{color:var(--text) !important}
+.maya-speech{background:transparent !important}
+.maya-speech-en{color:var(--text) !important;font-family:'Sora',sans-serif !important}
+.maya-speech-pt,#mic-help,.voice-tip small{color:var(--dim) !important}
+.voice-tip{border:1px solid var(--edge) !important;border-radius:0 !important}
+.voice-tip button{color:var(--cyan) !important;background:transparent !important}
+.mic{background:var(--cyan) !important;color:var(--void) !important;box-shadow:0 0 30px rgba(79,208,255,.6) !important}
+#exam-content [style*="background:#f8f5ed"],#exam-content [style*="background:#fffdf8"],#exam-content [style*="background:#e9e5da"],#exam-content [style*="background:#eee"]{background:#16304a !important;color:var(--text) !important}
+#exam-content button[style*="background:#fff"],#exam-content .option{background:var(--panel-2) !important;color:var(--text) !important;border-color:var(--edge) !important}
+#exam-content [style*="background:#276246"]{background:var(--cyan) !important;color:var(--void) !important}
+#exam-content [style*="#e8f4d1"]{background:rgba(207,234,255,.14) !important;color:var(--text) !important}
+#exam-content [style*="#ffe4e6"]{background:rgba(120,140,200,.14) !important;color:#c8d2f5 !important;border-left:3px solid #6b7bb8 !important}
+#exam-content [style*="#dc2626"],#exam-content [style*="#e11d48"],#exam-content [style*="#ef4444"],#exam-content [style*="#991b1b"],#exam-content [style*="color:red"]{color:#9fefff !important}
+#exam-content [style*="background:#dc2626"],#exam-content [style*="background:#ef4444"]{background:#3d6bff !important;color:#fff !important}
+#certificate-modal .modal-box h2,#name-modal .modal-box h2{color:var(--text)}
+
+/* ---------- Só azuis: neutraliza verdes/rosas/vermelhos herdados ---------- */
+.check,.lesson-card .check{background:var(--cyan) !important;color:var(--void) !important;box-shadow:0 0 12px rgba(79,208,255,.6) !important}
+.maya-intro-hint{background:var(--cyan) !important;color:var(--void) !important;animation:none !important}
+.module-badge,#exam-view .module-badge{background:rgba(79,208,255,.14) !important;color:var(--cyan) !important}
+#exam-view .module-card[style*="#276246"]{box-shadow:inset 0 0 0 1px var(--cyan) !important}
+.live-dot{background:var(--cyan) !important;box-shadow:0 0 10px var(--cyan) !important}
+.maya-avatar-big.speaking{box-shadow:0 0 0 6px rgba(79,208,255,.25),0 0 80px 16px rgba(79,208,255,.45) !important}
+#maya-volume{accent-color:var(--cyan)}
+#exam-content [style*="#276246"]:not([style*="background"]){color:var(--cyan) !important}
+#lesson-content [style*="#ffe4e6"],#feedback [style*="color:#"]{color:var(--cyan) !important}
+#lesson-content [style*="#ffe4e6"]{background:rgba(120,140,200,.14) !important}
+.speaker{background:var(--panel-2) !important;color:var(--cyan) !important;box-shadow:0 0 0 1px var(--edge)}
+
+
+/* ============================================================
+   PALETA DA MAYA (Zeuvastec App, assistente de IA)
+   Mesmas cores do app maya-zeuvastec.vercel.app
+   ============================================================ */
+:root{
+  --void:#06101c;      /* --bg da Maya */
+  --panel:#0b1a2b;     /* --panel da Maya (rgba(12,28,46)) */
+  --panel-2:#10263d;
+  --edge:#1d3a52;      /* --line da Maya (rgba(120,200,255,.18)) */
+  --text:#e6f3ff;
+  --dim:#8fb0c8;
+  --cyan:#4fd0ff;      /* --cyan da Maya */
+  --magenta:#167fca;   /* --blue da Maya */
+  --lime:#cfeaff;      /* azul-claro dos textos de destaque da Maya */
+  --stage-1:#cfeaff;--stage-2:#9fdcff;--stage-3:#4fd0ff;--stage-4:#2aa4ef;--stage-5:#167fca;--stage-6:#7fd8ff;
+}
+body{
+  background:radial-gradient(120% 70% at 50% 28%,#123250 0%,#0a1a2c 45%,#06101c 100%) !important;
+  background-attachment:fixed !important;
+}
+/* Botões de ação = botão do microfone da Maya */
+.primary,#lesson-catalog .catalog-card button,.level-choice.active,
+#lesson-content .tabs .tab.active,.tab.active,.nav-item.active{
+  background:radial-gradient(circle at 35% 30%,#2aa4ef,#0d5e9a) !important;
+  color:#fff !important;
+}
+.nav-item.active{box-shadow:0 0 0 1px rgba(79,208,255,.5),0 0 22px rgba(79,208,255,.35) !important}
+.primary{box-shadow:0 0 0 1px rgba(79,208,255,.5),0 0 24px rgba(42,164,239,.35) !important}
+.brand-mark{background:radial-gradient(circle at 35% 30%,#4fd0ff,#167fca 70%,#0d5e9a) !important;color:#fff !important}
+.ring{background:conic-gradient(#4fd0ff var(--p,0%), #16304a 0) !important}
+.check,.lesson-card .check,.mic{background:radial-gradient(circle at 35% 30%,#2aa4ef,#0d5e9a) !important;color:#fff !important}
+#modules-grid .module-progress i,#modules-grid .module-card:nth-child(-n+2) .module-progress i,.bars .today{
+  background:linear-gradient(90deg,#167fca,#4fd0ff) !important;box-shadow:0 0 10px rgba(79,208,255,.6) !important;
+}
+#home-view h1 b,#student-name{background:linear-gradient(95deg,#cfeaff,#4fd0ff 45%,#167fca) !important;-webkit-background-clip:text !important;background-clip:text !important}
+/* mensagens do aluno no chat: lilás, como na Maya */
+.message.user>div{background:rgba(183,156,255,.16) !important;border-color:rgba(183,156,255,.35) !important}
