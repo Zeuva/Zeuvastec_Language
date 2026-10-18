@@ -66,11 +66,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{
 }
 /* Cada etapa ganha a cor do seu nível: do broto à floresta */
 #modules-grid .module-card:nth-child(1){--stage:var(--stage-1);--level:"A1";}
-#modules-grid .module-card:nth-child(2){--stage:var(--stage-2);--level:"A1";}
-#modules-grid .module-card:nth-child(3){--stage:var(--stage-3);--level:"A2";}
-#modules-grid .module-card:nth-child(4){--stage:var(--stage-4);--level:"B1";}
-#modules-grid .module-card:nth-child(5){--stage:var(--stage-5);--level:"B2";}
-#modules-grid .module-card:nth-child(6){--stage:var(--stage-6);--level:"C1";}
+#modules-grid .module-card:nth-child(2){--stage:var(--stage-3);--level:"A2";}
+#modules-grid .module-card:nth-child(3){--stage:var(--stage-4);--level:"B1";}
+#modules-grid .module-card:nth-child(4){--stage:var(--stage-6);--level:"B2";}
 
 #modules-grid .module-card:hover{
   transform:translateX(4px);
@@ -201,11 +199,9 @@ button:focus-visible,a:focus-visible,input:focus-visible{
    3. APRENDER — catálogo agrupado por etapa
    ------------------------------------------------------------ */
 #lesson-catalog > :nth-child(1),#lesson-catalog > :nth-child(2){--stage:var(--stage-1);--level:"A1"}
-#lesson-catalog > :nth-child(3),#lesson-catalog > :nth-child(4){--stage:var(--stage-2);--level:"A1"}
-#lesson-catalog > :nth-child(5),#lesson-catalog > :nth-child(6){--stage:var(--stage-3);--level:"A2"}
-#lesson-catalog > :nth-child(7),#lesson-catalog > :nth-child(8){--stage:var(--stage-4);--level:"B1"}
-#lesson-catalog > :nth-child(9),#lesson-catalog > :nth-child(10){--stage:var(--stage-5);--level:"B2"}
-#lesson-catalog > :nth-child(11),#lesson-catalog > :nth-child(12){--stage:var(--stage-6);--level:"C1"}
+#lesson-catalog > :nth-child(3),#lesson-catalog > :nth-child(4){--stage:var(--stage-3);--level:"A2"}
+#lesson-catalog > :nth-child(5),#lesson-catalog > :nth-child(6){--stage:var(--stage-4);--level:"B1"}
+#lesson-catalog > :nth-child(7),#lesson-catalog > :nth-child(8){--stage:var(--stage-6);--level:"B2"}
 
 #lesson-catalog .catalog-head{
   position:relative;
@@ -232,7 +228,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{
   letter-spacing:.02em;
   box-shadow:0 0 0 4px var(--paper);
 }
-#lesson-catalog > :nth-child(n+9).catalog-head::before{color:#fff}
+#lesson-catalog > :nth-child(n+7).catalog-head::before{color:#fff}
 #lesson-catalog .catalog-head h3{
   margin:0;
   font-size:21px;

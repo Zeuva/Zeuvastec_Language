@@ -213,7 +213,7 @@ h1,h2{letter-spacing:.005em !important;font-weight:700 !important}
 /* ---------- Trilha em órbita: 6 cápsulas lado a lado ---------- */
 #modules-grid{
   display:grid !important;
-  grid-template-columns:repeat(6,minmax(150px,1fr));
+  grid-template-columns:repeat(4,minmax(170px,1fr));
   gap:14px !important;
   position:relative;
   overflow-x:auto;
@@ -335,15 +335,15 @@ input,select,textarea{background:var(--void);color:var(--text);border-color:var(
   .maya-avatar-slot-home{max-width:300px;margin-inline:auto}
   #home-view .subtitle{margin-inline:auto}
   .brand-signature{text-align:center !important}
-  #modules-grid{grid-template-columns:repeat(6,72%) !important;margin-inline:-18px;padding-inline:18px}
-  #modules-grid::before{left:18px;right:auto;width:calc(6 * 72% + 5 * 14px - 36px)}
+  #modules-grid{grid-template-columns:repeat(4,72%) !important;margin-inline:-18px;padding-inline:18px}
+  #modules-grid::before{left:18px;right:auto;width:calc(4 * 72% + 3 * 14px - 36px)}
   #lesson-catalog > .lesson-catalog{grid-template-columns:1fr !important}
   .hero h2{font-size:32px !important}
   .maya-volume{bottom:88px !important}
 }
 @media (min-width:901px) and (max-width:1250px){
   #lesson-catalog > .lesson-catalog{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
-  #modules-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #modules-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   #modules-grid::before{display:none}
 }
 
@@ -378,7 +378,7 @@ input,select,textarea{background:var(--void);color:var(--text);border-color:var(
 /* ---------- Só azuis: neutraliza verdes/rosas/vermelhos herdados ---------- */
 .check,.lesson-card .check{background:var(--cyan) !important;color:var(--void) !important;box-shadow:0 0 12px rgba(79,208,255,.6) !important}
 .maya-intro-hint{background:var(--cyan) !important;color:var(--void) !important;animation:none !important}
-.module-badge,#exam-view .module-badge{background:rgba(79,208,255,.14) !important;color:var(--cyan) !important}
+#exam-view .module-badge{background:rgba(79,208,255,.14) !important;color:var(--cyan) !important}
 #exam-view .module-card[style*="#276246"]{box-shadow:inset 0 0 0 1px var(--cyan) !important}
 .live-dot{background:var(--cyan) !important;box-shadow:0 0 10px var(--cyan) !important}
 .maya-avatar-big.speaking{box-shadow:0 0 0 6px rgba(79,208,255,.25),0 0 80px 16px rgba(79,208,255,.45) !important}
@@ -403,7 +403,7 @@ input,select,textarea{background:var(--void);color:var(--text);border-color:var(
   --cyan:#4fd0ff;      /* --cyan da Maya */
   --magenta:#167fca;   /* --blue da Maya */
   --lime:#cfeaff;      /* azul-claro dos textos de destaque da Maya */
-  --stage-1:#cfeaff;--stage-2:#9fdcff;--stage-3:#4fd0ff;--stage-4:#2aa4ef;--stage-5:#167fca;--stage-6:#7fd8ff;
+  --stage-1:#cfeaff;--stage-2:#9fdcff;--stage-3:#4fd0ff;--stage-4:#2aa4ef;--stage-5:#167fca;--stage-6:#5aa8ff;
 }
 body{
   background:radial-gradient(120% 70% at 50% 28%,#123250 0%,#0a1a2c 45%,#06101c 100%) !important;
