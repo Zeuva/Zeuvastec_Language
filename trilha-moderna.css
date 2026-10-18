@@ -1,0 +1,352 @@
+/* ============================================================
+   TRILHA MODERNA — camada visual (2026-10-18)
+   Só aparência: não altera nenhum comportamento do app.
+   Mantém a paleta Zeuvastec e acrescenta uma escala de 6 etapas
+   que vai do broto (A1) à floresta (C1), usada na trilha,
+   no catálogo e nos selos de nível.
+   ============================================================ */
+
+:root{
+  --stage-1:#d9f36a;   /* A1 · broto        */
+  --stage-2:#c3e86c;   /* A1 · broto firme  */
+  --stage-3:#9fd47a;   /* A2 · folha        */
+  --stage-4:#74bb78;   /* B1 · folha densa  */
+  --stage-5:#4f9a6d;   /* B2 · mata         */
+  --stage-6:#276246;   /* C1 · floresta     */
+  --shadow-soft:0 1px 2px rgba(39,98,70,.06),0 10px 28px -18px rgba(39,98,70,.35);
+  --shadow-lift:0 2px 4px rgba(39,98,70,.06),0 22px 40px -22px rgba(39,98,70,.45);
+}
+
+body{
+  background:
+    radial-gradient(1200px 520px at 100% -10%, rgba(217,243,106,.18), transparent 60%),
+    var(--cream);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Foco visível para teclado em todo o app */
+button:focus-visible,a:focus-visible,input:focus-visible{
+  outline:3px solid var(--stage-5);
+  outline-offset:2px;
+  border-radius:10px;
+}
+
+/* ------------------------------------------------------------
+   1. SUA TRILHA — caminho vertical em etapas
+   ------------------------------------------------------------ */
+#modules-grid{
+  display:flex !important;
+  flex-direction:column;
+  gap:14px;
+  margin:22px 0 8px;
+  position:relative;
+  counter-reset:etapa;
+}
+
+#modules-grid .module-card{
+  --stage:var(--stage-1);
+  --level:"A1";
+  display:grid;
+  grid-template-columns:64px minmax(0,1fr) minmax(150px,220px);
+  grid-template-areas:
+    "node badge prog"
+    "node title prog"
+    "node desc  meta";
+  column-gap:20px;
+  row-gap:2px;
+  align-items:center;
+  padding:18px 22px 18px 18px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:var(--paper);
+  box-shadow:var(--shadow-soft);
+  overflow:visible;
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+/* Cada etapa ganha a cor do seu nível: do broto à floresta */
+#modules-grid .module-card:nth-child(1){--stage:var(--stage-1);--level:"A1";}
+#modules-grid .module-card:nth-child(2){--stage:var(--stage-2);--level:"A1";}
+#modules-grid .module-card:nth-child(3){--stage:var(--stage-3);--level:"A2";}
+#modules-grid .module-card:nth-child(4){--stage:var(--stage-4);--level:"B1";}
+#modules-grid .module-card:nth-child(5){--stage:var(--stage-5);--level:"B2";}
+#modules-grid .module-card:nth-child(6){--stage:var(--stage-6);--level:"C1";}
+
+#modules-grid .module-card:hover{
+  transform:translateX(4px);
+  box-shadow:var(--shadow-lift);
+  border-color:color-mix(in srgb,var(--stage) 55%,var(--line));
+}
+
+/* Linha que liga uma etapa à próxima */
+#modules-grid .module-card::before{
+  content:"";
+  position:absolute;
+  left:49px;
+  top:calc(50% + 26px);
+  width:3px;
+  height:calc(100% - 38px);
+  border-radius:3px;
+  background:linear-gradient(var(--stage),color-mix(in srgb,var(--stage) 40%,#fff));
+  opacity:1;
+  right:auto;
+  transform-origin:top;
+  animation:trilha-desenha .9s cubic-bezier(.3,.7,.2,1) both;
+  z-index:2;
+}
+#modules-grid .module-card:last-child::before{display:none}
+#modules-grid .module-card:nth-child(2)::before{animation-delay:.12s}
+#modules-grid .module-card:nth-child(3)::before{animation-delay:.24s}
+#modules-grid .module-card:nth-child(4)::before{animation-delay:.36s}
+#modules-grid .module-card:nth-child(5)::before{animation-delay:.48s}
+@keyframes trilha-desenha{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+#modules-grid .module-card-top{display:contents}
+
+/* Nó da etapa: ícone dentro de um círculo na cor do nível */
+#modules-grid .module-icon{
+  grid-area:node;
+  position:relative;
+  z-index:3;
+  width:64px;height:64px;
+  border-radius:50%;
+  font-size:27px;
+  background:var(--stage);
+  box-shadow:0 0 0 5px var(--paper),0 0 0 6px color-mix(in srgb,var(--stage) 45%,transparent),0 10px 20px -8px color-mix(in srgb,var(--stage) 90%,#000);
+}
+#modules-grid .module-card:nth-child(n+5) .module-icon{filter:saturate(1.05)}
+
+#modules-grid .module-badge{
+  grid-area:badge;
+  justify-self:start;
+  background:transparent;
+  color:var(--muted);
+  padding:0;
+  letter-spacing:.06em;
+}
+#modules-grid .module-badge::after{
+  content:"  ·  " var(--level);
+  white-space:pre;
+  color:color-mix(in srgb,var(--stage) 55%,var(--ink));
+  letter-spacing:.04em;
+}
+#modules-grid .module-card h3{
+  grid-area:title;
+  margin:0;
+  font-size:21px;
+  line-height:1.2;
+  letter-spacing:-.02em;
+}
+#modules-grid .module-card p{
+  grid-area:desc;
+  font-size:13px;
+  line-height:1.4;
+}
+#modules-grid .module-progress{
+  grid-area:prog;
+  align-self:end;
+  height:8px;
+  margin:0;
+  background:#efece2;
+}
+#modules-grid .module-progress i{
+  background:linear-gradient(90deg,color-mix(in srgb,var(--stage) 70%,#fff),var(--stage));
+  box-shadow:none;
+  min-width:0;
+}
+#modules-grid .module-card:nth-child(-n+2) .module-progress i{
+  background:linear-gradient(90deg,#b9d84a,var(--green));
+}
+#modules-grid .module-card small{
+  grid-area:meta;
+  align-self:start;
+  justify-self:end;
+  font-size:12px !important;
+  color:var(--muted) !important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ------------------------------------------------------------
+   2. CONTINUE DE ONDE PAROU
+   ------------------------------------------------------------ */
+#lesson-grid .lesson-card{
+  border-radius:20px;
+  padding:20px 20px 18px;
+  box-shadow:var(--shadow-soft);
+}
+#lesson-grid .lesson-card .level-badge{margin-left:6px;vertical-align:middle;background:#eef8cc;border-color:transparent}
+#lesson-grid .lesson-card:hover{box-shadow:var(--shadow-lift)}
+#lesson-grid .lesson-card h3{
+  font-family:Fraunces,serif;
+  font-size:19px;
+  letter-spacing:-.02em;
+  margin:14px 0 6px;
+}
+#lesson-grid .lesson-card p{line-height:1.5}
+#lesson-grid .lesson-card button{
+  background:var(--green);
+  color:#fff;
+  border-radius:999px;
+  padding:9px 16px;
+  margin-top:14px;
+  font-size:13px;
+}
+#lesson-grid .lesson-card button:hover{text-decoration:none;background:#1f5139}
+#lesson-grid .lesson-card:first-child{
+  border-color:color-mix(in srgb,var(--lime) 70%,var(--line));
+  background:linear-gradient(160deg,#fbfee9,var(--paper) 60%);
+}
+
+/* ------------------------------------------------------------
+   3. APRENDER — catálogo agrupado por etapa
+   ------------------------------------------------------------ */
+#lesson-catalog > :nth-child(1),#lesson-catalog > :nth-child(2){--stage:var(--stage-1);--level:"A1"}
+#lesson-catalog > :nth-child(3),#lesson-catalog > :nth-child(4){--stage:var(--stage-2);--level:"A1"}
+#lesson-catalog > :nth-child(5),#lesson-catalog > :nth-child(6){--stage:var(--stage-3);--level:"A2"}
+#lesson-catalog > :nth-child(7),#lesson-catalog > :nth-child(8){--stage:var(--stage-4);--level:"B1"}
+#lesson-catalog > :nth-child(9),#lesson-catalog > :nth-child(10){--stage:var(--stage-5);--level:"B2"}
+#lesson-catalog > :nth-child(11),#lesson-catalog > :nth-child(12){--stage:var(--stage-6);--level:"C1"}
+
+#lesson-catalog .catalog-head{
+  position:relative;
+  margin:40px 0 16px;
+  padding:16px 20px 16px 76px;
+  border-radius:18px;
+  background:color-mix(in srgb,var(--stage) 22%,var(--paper));
+  border:1px solid color-mix(in srgb,var(--stage) 45%,var(--line));
+  gap:12px;
+  flex-wrap:wrap;
+}
+#lesson-catalog .catalog-head:first-child{margin-top:8px}
+#lesson-catalog .catalog-head::before{
+  content:var(--level);
+  position:absolute;
+  left:16px;top:50%;
+  transform:translateY(-50%);
+  width:44px;height:44px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--stage);
+  color:var(--ink);
+  font:700 14px/1 'DM Sans',sans-serif;
+  letter-spacing:.02em;
+  box-shadow:0 0 0 4px var(--paper);
+}
+#lesson-catalog > :nth-child(n+9).catalog-head::before{color:#fff}
+#lesson-catalog .catalog-head h3{
+  margin:0;
+  font-size:21px;
+  letter-spacing:-.02em;
+}
+#lesson-catalog .catalog-head .level-badge{
+  background:var(--paper);
+  border-color:transparent;
+  font-variant-numeric:tabular-nums;
+}
+
+#lesson-catalog .catalog-card{
+  position:relative;
+  flex-direction:column;
+  align-items:stretch;
+  gap:16px;
+  padding:22px 22px 18px 26px;
+  border-radius:18px;
+  box-shadow:var(--shadow-soft);
+  transition:transform .2s ease, box-shadow .2s ease;
+  overflow:hidden;
+}
+#lesson-catalog .catalog-card::before{
+  content:"";
+  position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:var(--stage);
+}
+#lesson-catalog .catalog-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift)}
+#lesson-catalog .catalog-card .level-badge{
+  background:color-mix(in srgb,var(--stage) 30%,#fff);
+  border-color:transparent;
+  color:var(--ink);
+}
+#lesson-catalog .catalog-card .eyebrow{margin:10px 0 4px}
+#lesson-catalog .catalog-card h2{font-size:21px;line-height:1.2}
+#lesson-catalog .catalog-card p:not(.eyebrow){line-height:1.5;margin:8px 0 10px}
+#lesson-catalog .catalog-card button{
+  align-self:flex-start;
+  border-radius:999px;
+  padding:10px 20px;
+  font-size:13px;
+  transition:background-color .15s ease;
+}
+#lesson-catalog .catalog-card button:hover{background:#1f5139}
+#lesson-catalog .catalog-card.done{background:linear-gradient(160deg,#f5fae5,var(--paper) 70%)}
+#lesson-catalog .catalog-card.done button{background:transparent;color:var(--green);box-shadow:inset 0 0 0 1.5px var(--green)}
+
+/* ------------------------------------------------------------
+   4. JANELA DA LIÇÃO
+   ------------------------------------------------------------ */
+#lesson-modal .modal-box{
+  max-width:640px !important;
+  border-radius:26px !important;
+  padding:34px 34px 30px !important;
+  border-top:6px solid var(--lime) !important;
+}
+#lesson-content .tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  padding:5px;
+  border:0;
+  border-radius:999px;
+  background:#f1efe8;
+}
+#lesson-content .tabs .tab{
+  flex:1 1 auto;
+  background:transparent;
+  padding:9px 12px;
+  transition:background-color .15s ease,color .15s ease;
+}
+#lesson-content .tabs .tab.active{background:var(--green);color:#fff;box-shadow:0 4px 12px -6px rgba(39,98,70,.7)}
+#lesson-content .vocab-item{transition:border-color .15s ease}
+#lesson-content .vocab-item:hover{border-color:#cfe3b9 !important}
+#lesson-content .option{
+  transition:border-color .15s ease,background-color .15s ease,transform .1s ease;
+}
+#lesson-content .option:hover{border-color:var(--green) !important;background:#fbfdf3 !important}
+#lesson-content .option:active{transform:scale(.99)}
+
+/* ------------------------------------------------------------
+   5. Celular
+   ------------------------------------------------------------ */
+@media (max-width:900px){
+  #modules-grid .module-card{
+    grid-template-columns:52px minmax(0,1fr);
+    grid-template-areas:
+      "node badge"
+      "node title"
+      "node desc"
+      "node prog"
+      "node meta";
+    row-gap:4px;
+    margin-left:0 !important;
+    padding:16px;
+  }
+  #modules-grid .module-icon{width:52px;height:52px;font-size:22px;align-self:start}
+  #modules-grid .module-card::before{left:40px;top:68px;height:calc(100% - 38px)}
+  #modules-grid .module-progress{margin-top:10px}
+  #modules-grid .module-card small{justify-self:start}
+}
+@media (max-width:560px){
+  #modules-grid .module-card h3{font-size:19px}
+  #lesson-catalog .catalog-head{padding:14px 16px 14px 68px}
+  #lesson-catalog .catalog-head::before{width:40px;height:40px;font-size:13px;left:14px}
+  #lesson-catalog .catalog-head h3{font-size:18px}
+  #lesson-modal .modal-box{padding:28px 20px 22px !important}
+}
+
+/* ------------------------------------------------------------
+   6. Movimento reduzido
+   ------------------------------------------------------------ */
+@media (prefers-reduced-motion:reduce){
+  #modules-grid .module-card::before{animation:none}
+  #modules-grid .module-card,#lesson-catalog .catalog-card,#lesson-content .option{transition:none}
+  #modules-grid .module-card:hover,#lesson-catalog .catalog-card:hover{transform:none}
+}

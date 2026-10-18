@@ -216,7 +216,7 @@ function closeExam(){
 // Certificados
 function generateCertificate(moduleId, pct){
   const studentName = localStorage.getItem('zeuvastec-student-name') || 'Aluno Zeuvastec';
-  const moduleNames = {1:'Palavras básicas',2:'Primeiras frases',3:'Dia a dia',4:'Profissional e avançado'};
+  const moduleNames = {1:'Palavras básicas',2:'Primeiras frases',3:'Dia a dia',4:'Conversas e opiniões',5:'Inglês profissional',6:'Rumo à fluência'};
   const moduleName = moduleNames[moduleId] || `Módulo ${moduleId}`;
   const dateStr = new Date().toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
   
