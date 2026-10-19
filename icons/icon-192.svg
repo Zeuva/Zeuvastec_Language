@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="115" fill="#276246"/>
-<text x="50%" y="41%" dominant-baseline="middle" text-anchor="middle" font-family="serif" font-weight="800" font-size="190" fill="#d9f36a">Z</text>
-<circle cx="360" cy="122" r="26" fill="#d9f36a"/>
-<text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="44" fill="#fffdf8" letter-spacing="1">Zeuvastec</text>
-<text x="50%" y="79%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="600" font-size="26" fill="#c8e2b4" letter-spacing="4">LANGUAGE</text>
+<defs><radialGradient id="b" cx="50%" cy="30%" r="90%"><stop offset="0" stop-color="#1a4a72"/><stop offset=".55" stop-color="#0a1a2c"/><stop offset="1" stop-color="#06101c"/></radialGradient>
+<linearGradient id="z" x1="0" y1="0" x2="0.6" y2="1"><stop offset=".1" stop-color="#e6f6ff"/><stop offset=".55" stop-color="#4fd0ff"/><stop offset="1" stop-color="#167fca"/></linearGradient></defs>
+<rect width="512" height="512" rx="115" fill="url(#b)"/>
+<circle cx="256" cy="210" r="150" fill="none" stroke="#4fd0ff" stroke-opacity=".35" stroke-width="3"/>
+<text x="50%" y="41%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="220" fill="url(#z)">Z</text>
+<circle cx="361" cy="127" r="23" fill="#4fd0ff"/>
+<text x="50%" y="72%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="48" fill="#e6f3ff" letter-spacing="1">Zeuvastec</text>
+<text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-weight="600" font-size="24" fill="#8fdcff" letter-spacing="9">LANGUAGE</text>
 </svg>
