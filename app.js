@@ -17,6 +17,12 @@ if(localStorage.getItem('zeuvastec-data-version')!==DATA_VERSION){
 let completed=JSON.parse(localStorage.getItem('zeuvastec-completed')||'[]');
 let points=parseInt(localStorage.getItem('zeuvastec-points')||'0',10);
 let currentCard=0; let soundOn=true; let activeTab='dialog'; let currentQuizIndex=0;
+// Continuar de onde parou (2026-10-19): guarda a lição e a pergunta em que o aluno estava.
+const lessonProgressKey='zeuvastec-lesson-progress';
+function getLessonProgress(){ try{ const p=JSON.parse(localStorage.getItem(lessonProgressKey)||'null'); return (p&&typeof p.id==='number'&&typeof p.q==='number')?p:null; }catch(e){ return null; } }
+function setLessonProgress(id,q){ try{ localStorage.setItem(lessonProgressKey,JSON.stringify({id,q})); }catch(e){} }
+function clearLessonProgress(){ try{ localStorage.removeItem(lessonProgressKey); }catch(e){} }
+function previousLessonOf(id){ const i=lessons.findIndex(x=>x.id===id); return i>0?lessons[i-1]:null; }
 const $=s=>document.querySelector(s); const $$=s=>document.querySelectorAll(s);
 function save(){localStorage.setItem('zeuvastec-completed',JSON.stringify(completed)); localStorage.setItem('zeuvastec-points',points.toString());}
 
@@ -78,14 +84,27 @@ function renderLessons(){
  setTxt('learn-eyebrow',`TRILHA COMPLETA · ${lessons.length} LIÇÕES · DO BÁSICO AO AVANÇADO`);
  setTxt('trail-sub',`Do básico ao avançado, em ${modules.length} módulos`);
  setTxt('exam-eyebrow',`SIMULADOS E PROVAS · ${lessons.length} LIÇÕES · ${totalQ} PERGUNTAS`);
- const prox=lessons[start];
- if(prox){ setTxt('hero-eyebrow',`PRÓXIMA LIÇÃO · ${prox.time} · ${String(prox.level).toUpperCase()}`); setTxt('hero-title',prox.title); setTxt('hero-desc',prox.desc); }
+ const andamento=getLessonProgress(); const emAndamento=andamento&&lessons.find(x=>x.id===andamento.id);
+ const prox=emAndamento||lessons[start];
+ if(prox){
+   if(emAndamento) setTxt('hero-eyebrow',`CONTINUE DE ONDE PAROU · PERGUNTA ${andamento.q+1} DE ${prox.quiz.length}`);
+   else setTxt('hero-eyebrow',`PRÓXIMA LIÇÃO · ${prox.time} · ${String(prox.level).toUpperCase()}`);
+   setTxt('hero-title',prox.title); setTxt('hero-desc',prox.desc);
+   const sb=document.getElementById('start-lesson'); if(sb) sb.innerHTML=(emAndamento?'Continuar lição':'Começar lição')+' <span>→</span>';
+   const ant=previousLessonOf(prox.id);
+   let rb=document.getElementById('repeat-previous');
+   if(sb&&!rb){ rb=document.createElement('button'); rb.type='button'; rb.id='repeat-previous'; rb.className='repeat-previous'; sb.insertAdjacentElement('afterend',rb); }
+   if(rb){ rb.hidden=!ant; if(ant){ rb.textContent='↺ Repetir lição anterior: '+ant.title; rb.onclick=()=>openLesson(ant.id,{restart:true}); } }
+ }
  const cc=document.getElementById('completed-count'); if(cc) cc.textContent=completed.length;
  const pts=document.getElementById('points'); if(pts) pts.textContent=points;
 }
-function openLesson(id){
+function openLesson(id,opts){
  const l=lessons.find(x=>x.id===id);
- currentQuizIndex=0;
+ const salvo=getLessonProgress();
+ const retomar=!(opts&&opts.restart) && salvo && salvo.id===id && salvo.q>0 && salvo.q<l.quiz.length;
+ currentQuizIndex=retomar?salvo.q:0;
+ if(opts&&opts.restart && salvo && salvo.id===id) clearLessonProgress();
  const tabs=`<div class="tabs"><button class="tab active" data-tab="dialog">Diálogo</button><button class="tab" data-tab="vocab">Vocabulário (${l.vocab.length})</button><button class="tab" data-tab="grammar">Gramática</button><button class="tab" data-tab="quiz">Quiz (${l.quiz.length} perguntas)</button></div>`;
  const vocabHtml=`<div style="margin-bottom:12px;padding:10px;background:#f5fae5;border-radius:10px;font-size:12px;color:#276246"><strong>📖 ${l.vocab.length} palavras</strong></div><div class="vocab-grid">${l.vocab.map(v=>`<div class="vocab-item" style="border:1px solid #e9e5da;padding:12px;border-radius:10px;background:#fff"><div class="vocab-item-head" style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div class="vocab-text" style="min-width:0"><strong>${v[0]}</strong> — ${v[1]}<br><small style="color:#718078">${v[2]}</small><br><small style="color:#9ca3af;font-size:11px">💡 ${v[3]||"Expressão útil"}</small></div><div class="vocab-audio-buttons" style="display:flex;flex-direction:column;gap:4px;flex:0 0 auto"><button type="button" class="tab vocab-audio-btn" data-voice-lang="en" data-voice-text="${encodeURIComponent(v[0])}" title="Ouvir em inglês" aria-label="Ouvir em inglês" style="font-size:10px">🔊 EN</button><button type="button" class="tab vocab-audio-btn" data-voice-lang="pt" data-voice-text="${encodeURIComponent(v[1])}" title="Ouvir em português" aria-label="Ouvir em português" style="font-size:10px">🔊 PT</button></div></div></div>`).join('')}</div>`;
  function getQuizHtml(){
@@ -139,13 +158,15 @@ function openLesson(id){
          setTimeout(()=>{
            if(currentQuizIndex < l.quiz.length-1){
              currentQuizIndex++;
+             setLessonProgress(l.id,currentQuizIndex);
              document.getElementById('quiz-container').innerHTML=getQuizHtml();
              attachQuiz();
            } else {
+             { const sp=getLessonProgress(); if(sp&&sp.id===l.id) clearLessonProgress(); }
              fb.innerHTML+=`<br><br><strong style="color:#276246">🎉 Lição concluída! ${l.quiz.length} perguntas · ${l.vocab.length} palavras</strong>`;
              if(!completed.includes(l.id)){ completed.push(l.id); save(); renderLessons(); addDailyProgress(5); if(typeof window.registerPracticeActivity==='function') window.registerPracticeActivity(); updateProgressStats(); }
              speakBilingual('Congratulations! Lesson completed!', 'Parabéns! Lição concluída!');
-             setTimeout(()=>{ const nxt=lessons.find(x=>x.id>l.id && !completed.includes(x.id)); if(nxt) openLesson(nxt.id); else { const m=document.getElementById('lesson-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } } }, 1800);
+             setTimeout(()=>{ const pos=lessons.findIndex(x=>x.id===l.id); const nxt=lessons.slice(pos+1).find(x=>!completed.includes(x.id)); if(nxt) openLesson(nxt.id); else { const m=document.getElementById('lesson-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } } }, 1800);
            }
          }, 800);
        } else {
@@ -169,7 +190,14 @@ function openLesson(id){
    });
  }
  attachQuiz();
- speakEnglish(l.phrase);
+ const antL=previousLessonOf(l.id);
+ const barra=document.createElement('div'); barra.className='lesson-nav-extra';
+ barra.innerHTML=(retomar?`<span class="lesson-resume-note">▶ Continuando da pergunta ${currentQuizIndex+1} de ${l.quiz.length}</span><button type="button" class="tab" data-restart-lesson>↺ Recomeçar esta lição</button>`:'')+(antL?`<button type="button" class="tab" data-prev-lesson>← Repetir lição anterior</button>`:'');
+ const tabsEl=lessonContent.querySelector('.tabs'); if(tabsEl&&barra.innerHTML) tabsEl.insertAdjacentElement('beforebegin',barra);
+ const rBtn=barra.querySelector('[data-restart-lesson]'); if(rBtn) rBtn.onclick=()=>openLesson(l.id,{restart:true});
+ const pBtn=barra.querySelector('[data-prev-lesson]'); if(pBtn) pBtn.onclick=()=>openLesson(antL.id,{restart:true});
+ if(retomar){ const qt=lessonContent.querySelector('.tab[data-tab="quiz"]'); if(qt){ document.querySelectorAll('#lesson-content .tab[data-tab]').forEach(x=>x.classList.remove('active')); qt.classList.add('active'); ['dialog','vocab','grammar','quiz'].forEach(k=>{ const el=document.getElementById('tab-'+k); if(el) el.classList.toggle('hidden', k!=='quiz'); }); } }
+ else speakEnglish(l.phrase);
 }
 function updateProgressStats(){
   const s=document.getElementById('streak');
@@ -179,9 +207,9 @@ function updateProgressStats(){
 }
 function showView(v){ document.querySelectorAll('.content').forEach(x=>x.classList.add('hidden')); const el=document.getElementById(v+'-view'); if(el) el.classList.remove('hidden'); document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v)); if(v==='progress') updateProgressStats(); if(v==='learn') renderLessons(); if(v!=='talk') window.dispatchEvent(new CustomEvent('maya-stop-conversa')); window.dispatchEvent(new CustomEvent('maya-view-changed',{detail:{view:v}})); }
 document.addEventListener('click',e=>{ const lesson=e.target.dataset.lesson; if(lesson) openLesson(+lesson); const view=e.target.closest('[data-view]')?.dataset.view; if(view) showView(view); const say=e.target.dataset.say; if(say) speakEnglish(say); });
-const startBtn=document.getElementById('start-lesson'); if(startBtn) startBtn.onclick=()=>{ const nxt=lessons.find(l=>!completed.includes(l.id))||lessons[0]; openLesson(nxt.id); };
-const closeBtn=document.getElementById('close-modal'); if(closeBtn) closeBtn.onclick=()=>{ const m=document.getElementById('lesson-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } };
-const lessonModal=document.getElementById('lesson-modal'); if(lessonModal) lessonModal.onclick=e=>{ if(e.target.id==='lesson-modal'){ e.currentTarget.classList.add('hidden'); e.currentTarget.style.display='none'; } };
+const startBtn=document.getElementById('start-lesson'); if(startBtn) startBtn.onclick=()=>{ const and=getLessonProgress(); const emAnd=and&&lessons.find(x=>x.id===and.id); const nxt=emAnd||lessons.find(l=>!completed.includes(l.id))||lessons[0]; openLesson(nxt.id); };
+const closeBtn=document.getElementById('close-modal'); if(closeBtn) closeBtn.onclick=()=>{ const m=document.getElementById('lesson-modal'); if(m){ m.classList.add('hidden'); m.style.display='none'; } renderLessons(); };
+const lessonModal=document.getElementById('lesson-modal'); if(lessonModal) lessonModal.onclick=e=>{ if(e.target.id==='lesson-modal'){ e.currentTarget.classList.add('hidden'); e.currentTarget.style.display='none'; renderLessons(); } };
 const knownWordsKey='zeuvastec-known-words';
 function getKnownWords(){ return new Set(JSON.parse(localStorage.getItem(knownWordsKey)||'[]')); }
 function saveKnownWords(set){ localStorage.setItem(knownWordsKey, JSON.stringify([...set])); }
