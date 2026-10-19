@@ -70,7 +70,9 @@ function anexarEventosDeFala(u){
   const onerrorOriginal=u.onerror;
   u.onerror=(...args)=>{ terminar(); if(onerrorOriginal) onerrorOriginal(...args); };
 }
-function speakENFix(t,r=0.9,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(t); u.lang='en-US'; u.rate=r; u.volume=window.mayaVolume; const v=getENFix(); if(v) u.voice=v; avisarVozOnline(v); if(o) u.onend=o; anexarEventosDeFala(u); speechSynthesis.speak(u); },80); }
+// A voz lia "No." como abreviação de "number" (2026-10-19). Só o texto falado muda; o texto na tela continua "No.".
+function textoParaFala(t){ const s=String(t); if(/^\s*no\s*$/i.test(s)) return 'No!'; return s.replace(/\b(No|no|NO)\.(?=\s|$|["'”])/g,'$1!'); }
+function speakENFix(t,r=0.9,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(textoParaFala(t)); u.lang='en-US'; u.rate=r; u.volume=window.mayaVolume; const v=getENFix(); if(v) u.voice=v; avisarVozOnline(v); if(o) u.onend=o; anexarEventosDeFala(u); speechSynthesis.speak(u); },80); }
 function speakPTFix(t,r=1,o){ if(!t) return; if(typeof soundOn!=='undefined' && !soundOn) return; const isPureEN=/^[A-Za-z0-9 .,!?'"-]+$/.test(t) && !/[áàâãéêíóôõúç]/.test(t) && /\b(hello|my name|I am|would like|coffee|please|thank you|good morning|how are you|welcome to the café|what would you like)\b/i.test(t); if(isPureEN){ speakENFix(t,r,o); return; } speechSynthesis.cancel(); setTimeout(()=>{ const u=new SpeechSynthesisUtterance(t); u.lang='pt-BR'; u.rate=r; u.volume=window.mayaVolume; const v=getPTFix(); if(v) u.voice=v; avisarVozOnline(v); if(o) u.onend=o; anexarEventosDeFala(u); speechSynthesis.speak(u); },80); }
 window.speakEnglish=speakENFix; window.speakPortuguese=speakPTFix; window.speakBilingual=(en,pt)=>{ speakENFix(en,0.9,()=>{ setTimeout(()=> speakPTFix(pt,1.0),600); }); }; function speakSlowFix(t){ speakENFix(t,0.55); } window.speakSlow=speakSlowFix;
 
@@ -357,6 +359,35 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
   let activeScenario = 'palavras';
   let steps = courses.basic.palavras;
   let currentStep = 0;
+  // Continuar de onde parou (2026-10-19): a conversa guarda nível, cenário e
+  // pergunta. Ao reabrir o app, a Maya continua dali, e não volta para "Hello".
+  const CHAVE_CONVERSA = 'zeuvastec-conversa';
+  const ORDEM_CONVERSAS = [];
+  Object.keys(scenarioNames).forEach((lv) => Object.keys(scenarioNames[lv]).forEach((sc) => ORDEM_CONVERSAS.push([lv, sc])));
+  function salvarConversa(level, scenario, step) {
+    try { localStorage.setItem(CHAVE_CONVERSA, JSON.stringify({ level, scenario, step })); } catch (e) {}
+  }
+  function lerConversa() {
+    try {
+      const c = JSON.parse(localStorage.getItem(CHAVE_CONVERSA) || 'null');
+      if (c && courses[c.level] && courses[c.level][c.scenario] && Number.isInteger(c.step)) return c;
+    } catch (e) {}
+    return null;
+  }
+  function posicaoConversa(level, scenario) { return ORDEM_CONVERSAS.findIndex(([l, s]) => l === level && s === scenario); }
+  (function restaurarConversa() {
+    const c = lerConversa();
+    if (!c) return;
+    activeLevel = c.level; activeScenario = c.scenario; steps = courses[c.level][c.scenario];
+    currentStep = Math.max(0, Math.min(c.step, steps.length));
+    if (currentStep >= steps.length) {
+      // conversa anterior terminou: começa a próxima
+      const prox = ORDEM_CONVERSAS[posicaoConversa(c.level, c.scenario) + 1];
+      if (prox) { activeLevel = prox[0]; activeScenario = prox[1]; steps = courses[prox[0]][prox[1]]; }
+      currentStep = 0;
+    }
+    document.querySelectorAll('.level-choice').forEach((b) => b.classList.toggle('active', b.dataset.level === activeLevel));
+  })();
   let attemptsThisQuestion = 0;
   let sessionStats = { firstTryCorrect: 0, reviewPhrases: [] };
   let aiChatActive = false;
@@ -418,6 +449,49 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
 
   function scenarioKeys(level) { return Object.keys(scenarioNames[level]); }
 
+  function abrirConversa(level, scenario) {
+    document.querySelectorAll('.level-choice').forEach((b) => b.classList.toggle('active', b.dataset.level === level));
+    try { speechSynthesis.cancel(); } catch (e) {}
+    loadScenario(level, scenario, true);
+  }
+  const barraConversa = document.createElement('div');
+  barraConversa.className = 'conversa-nav';
+  barraConversa.innerHTML = '<span class="conversa-onde" id="conversa-onde"></span>'
+    + '<button type="button" class="tab" id="conversa-recomecar">↺ Recomeçar esta conversa</button>'
+    + '<button type="button" class="tab" id="conversa-anterior">← Repetir conversa anterior</button>';
+  const salaVoz = document.querySelector('#talk-view .voice-room');
+  if (salaVoz) salaVoz.insertAdjacentElement('beforebegin', barraConversa);
+  barraConversa.querySelector('#conversa-recomecar').onclick = () => { conversaAtiva = true; abrirConversa(activeLevel, activeScenario); };
+  barraConversa.querySelector('#conversa-anterior').onclick = () => {
+    const ant = ORDEM_CONVERSAS[posicaoConversa(activeLevel, activeScenario) - 1];
+    if (!ant) return;
+    conversaAtiva = true; abrirConversa(ant[0], ant[1]);
+  };
+  function atualizarCartaoConversa() {
+    const onde = document.getElementById('conversa-onde');
+    const total = steps.length;
+    const terminou = currentStep >= total;
+    if (onde) onde.textContent = terminou ? `Conversa concluída: ${scenarioNames[activeLevel][activeScenario]}`
+      : `${levelNames[activeLevel]} · ${scenarioNames[activeLevel][activeScenario]} · pergunta ${currentStep + 1} de ${total}`;
+    const antBtn = document.getElementById('conversa-anterior');
+    if (antBtn) antBtn.hidden = posicaoConversa(activeLevel, activeScenario) <= 0;
+    // cartão no Início: "Continuar conversa"
+    const heroCopy = document.querySelector('#home-view .hero-copy');
+    let card = document.getElementById('continuar-conversa');
+    if (heroCopy && !card) {
+      card = document.createElement('button');
+      card.type = 'button'; card.id = 'continuar-conversa'; card.className = 'continuar-conversa';
+      card.onclick = () => { const nav = document.querySelector('.nav-item[data-view="talk"]'); if (nav) nav.click(); };
+      heroCopy.appendChild(card);
+    }
+    const salvo = lerConversa();
+    if (card) {
+      card.hidden = !salvo || (salvo.step === 0 && posicaoConversa(salvo.level, salvo.scenario) === 0);
+      card.textContent = terminou ? `💬 Próxima conversa com a Maya →` : `💬 Continuar conversa: ${scenarioNames[activeLevel][activeScenario]} · pergunta ${currentStep + 1} de ${total}`;
+    }
+  }
+  atualizarCartaoConversa();
+
   function updateScenarioButton() {
     if (scenarioBtn) scenarioBtn.textContent = `Cenário: ${scenarioNames[activeLevel][activeScenario]} ▾`;
   }
@@ -433,7 +507,9 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
     aiChatActive = false;
     aiHistory = [];
     dialogue.innerHTML = '';
+    salvarConversa(level, scenario, 0);
     updateScenarioButton();
+    atualizarCartaoConversa();
     status.textContent = `🔵 ADQUIRIR · ${levelNames[level]} · ${scenarioNames[level][scenario]}`;
     if (announce) runAcquirePhase(level, scenario);
   }
@@ -540,6 +616,8 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
       return;
     }
     attemptsThisQuestion = 0;
+    salvarConversa(activeLevel, activeScenario, currentStep);
+    atualizarCartaoConversa();
     const step = steps[currentStep];
     const translation = translations[activeLevel][activeScenario][currentStep];
     const tipExample = document.getElementById('voice-tip-example');
@@ -558,6 +636,8 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
   // Fase 3 do ciclo: AJUSTAR. Mostra um relatório rápido (acertos de primeira
   // tentativa + frases para revisar) antes de encerrar ou seguir para o modo IA.
   function runAdjustPhase() {
+    salvarConversa(activeLevel, activeScenario, steps.length);
+    atualizarCartaoConversa();
     const total = steps.length;
     const correct = sessionStats.firstTryCorrect;
     const pct = Math.round((correct / total) * 100);
@@ -626,6 +706,27 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
     }
   }
 
+  // Resposta digitada (2026-10-19): no iPhone o reconhecimento de voz do
+  // Safari falha com frequência (e não existe quando o app é aberto pelo ícone
+  // da tela inicial). O aluno sempre pode digitar a resposta e seguir a aula.
+  const linhaDigitar = document.createElement('form');
+  linhaDigitar.className = 'resposta-digitada';
+  linhaDigitar.hidden = true;
+  linhaDigitar.innerHTML = '<input type="text" id="resposta-digitada-texto" autocomplete="off" autocapitalize="off" placeholder="Ou digite sua resposta em inglês…" aria-label="Digite sua resposta em inglês"><button type="submit" class="primary">Enviar</button>';
+  const controlesVoz = document.querySelector('.voice-controls');
+  if (controlesVoz) controlesVoz.insertAdjacentElement('afterend', linhaDigitar);
+  linhaDigitar.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const campo = document.getElementById('resposta-digitada-texto');
+    const texto = (campo.value || '').trim();
+    if (!texto) return;
+    campo.value = '';
+    conversaAtiva = true;
+    if (aiChatActive) assessWithAI(texto);
+    else if (currentStep < steps.length) assess(texto);
+  });
+  function mostrarCampoDigitar() { linhaDigitar.hidden = false; }
+
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   // O botão do microfone é escondido no computador (a escuta liga sozinha),
   // mas no iPhone/iPad o Safari só deixa o reconhecimento de voz começar
@@ -633,7 +734,11 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
   // ouvia (2026-09-19). Nesses aparelhos, e em navegadores sem
   // reconhecimento de voz, o botão fica sempre visível.
   const aparelhoApple = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  if (!Recognition || aparelhoApple) mic.classList.remove('hidden');
+  if (!Recognition || aparelhoApple) { mic.classList.remove('hidden'); mostrarCampoDigitar(); }
+  // Aberto pelo ícone da tela inicial do iPhone, o Safari não oferece reconhecimento de voz.
+  if (aparelhoApple && window.navigator.standalone) {
+    window.setTimeout(() => { help.textContent = 'No iPhone, o microfone funciona abrindo o app pelo Safari. Aqui você pode digitar sua resposta abaixo.'; }, 1500);
+  }
   if (!Recognition) {
     mic.onclick = () => {
       if (aiChatActive) {
@@ -685,6 +790,11 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
     mic.classList.remove('hidden'); // deixa o aluno tocar pra tentar de novo
     mic.classList.add('pulse');
     status.textContent = 'Não consegui ouvir';
+    mostrarCampoDigitar();
+    if (isIOS && (event.error === 'not-allowed' || event.error === 'service-not-allowed')) {
+      help.textContent = 'O iPhone bloqueou o microfone. Abra Ajustes > Privacidade > Microfone e Reconhecimento de Fala e permita o Safari, ou digite sua resposta abaixo.';
+      return;
+    }
     if (isIOS) {
       help.textContent = `O reconhecimento de voz do iPhone/iPad é instável (erro: ${event.error || 'desconhecido'}). Verifique Ajustes > Safari > Microfone, ou toque no microfone para tentar de novo.`;
     } else {
@@ -758,7 +868,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
         return;
       }
     }
-    if (isIOS) microphoneStream = { authorized: true };
+    if (isIOS) { microphoneStream = { authorized: true }; try { speechSynthesis.cancel(); } catch (e) {} }
     try {
       guidedRecognition.start();
       // Depois que o usuário autorizou/iniciou o microfone uma vez,
@@ -766,6 +876,7 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
       if (isIOS) autoListenArmed = true;
     } catch (error) {
       isListening = false;
+      if (isIOS) { mostrarCampoDigitar(); help.textContent = 'Toque no microfone 🎤 de novo ou digite sua resposta abaixo.'; }
     }
   }
   mic.onclick = () => {
@@ -806,7 +917,14 @@ window.mayaVolume=(function(){ const v=parseFloat(localStorage.getItem(CHAVE_VOL
     }
     if (!conversaAtiva) return; // o aluno pode ter saído enquanto esperava
     if (!aiChatActive && currentStep < steps.length) {
-      askNext();
+      if (currentStep > 0 && !dialogue.querySelector('.message.continua')) {
+        const volta = "Welcome back! Let's continue where we stopped.";
+        message(volta, 'tutor');
+        const ult = dialogue.lastElementChild; if (ult) ult.classList.add('continua');
+        say(volta, askNext);
+      } else {
+        askNext();
+      }
     }
   }
 

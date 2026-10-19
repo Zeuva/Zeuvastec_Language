@@ -442,3 +442,18 @@ body{
 .lesson-nav-extra{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:14px 0 4px}
 .lesson-nav-extra .tab{font-size:12px !important;padding:8px 12px !important}
 .lesson-resume-note{width:100%;text-align:center;font-size:12px;color:var(--cyan)}
+
+/* ---------- Lição guiada, conversa retomada e resposta digitada ---------- */
+.lesson-next{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:22px 0 4px}
+.lesson-next-quiz{font-size:15px !important;padding:16px 22px !important}
+.conversa-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.conversa-onde{flex:1 1 100%;font:600 13px 'Sora',sans-serif;color:var(--cyan)}
+.conversa-nav .tab{font-size:12px !important;padding:8px 12px !important}
+.continuar-conversa{display:block;margin-top:10px;padding:0;border:0;background:none;cursor:pointer;text-align:left;
+  color:#cfeaff !important;font:600 13px/1.4 'Sora',sans-serif !important;text-decoration:underline;text-decoration-color:rgba(79,208,255,.5);text-underline-offset:3px}
+.continuar-conversa:hover{color:var(--cyan) !important}
+.resposta-digitada{display:flex;gap:8px;max-width:520px;margin:10px auto 0;padding:0 12px}
+.resposta-digitada[hidden]{display:none}
+.resposta-digitada input{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--edge);background:var(--panel);color:var(--text);font:15px 'Sora',sans-serif}
+.resposta-digitada input:focus{outline:2px solid var(--cyan);outline-offset:1px}
+.resposta-digitada .primary{padding:12px 18px !important}
